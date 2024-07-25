@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'search',
 
     'rest_framework',
-    'cosheaders',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
