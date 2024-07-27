@@ -1,20 +1,20 @@
 ---
-name: Custom issue template
+name: START_ISSUE
 about: Describe this issue template's purpose here.
-title: ''
-labels: ''
-assignees: ''
-
+title: "[Tag] Issue Message "
+labels: ""
+assignees: ""
 ---
+## ✔️ Issue
 
-## 🪄 Issue Branch
-> 
-
-## ✔ Issue
-> 
+<!-- 이슈에 대해 간략하게 설명해주세요 -->
 
 ## 📝 To-do
-- [ ] ㅇ
+
+<!-- 진행할 작업에 대해 적어주세요 -->
+
+- [ ] 할 일
 
 ## 🛠 Working time
->
+
+<!-- 예상 작업시간을 적어주세요 -->
