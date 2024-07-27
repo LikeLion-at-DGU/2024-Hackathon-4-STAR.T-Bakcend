@@ -8,7 +8,7 @@ class Routine(models.Model):
     content = models.TextField()
     category = models.CharField(max_length=50)
     celebrity = models.ForeignKey(Celeb, on_delete=models.CASCADE)
-    image = models.URLField()
+    image = models.URLField(null=True, blank=True)
     video_url = models.URLField(null=True, blank=True)
     theme = models.ForeignKey(Theme, on_delete=models.CASCADE)
 
