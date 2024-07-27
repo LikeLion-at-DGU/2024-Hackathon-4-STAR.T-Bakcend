@@ -42,6 +42,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'search',
+    'user',
+    'calen',
+    'celeb',
+    'rank',
+    'routine',
+
+
 
     'rest_framework',
     'corsheaders',
