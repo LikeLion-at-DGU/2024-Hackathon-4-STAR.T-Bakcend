@@ -1,7 +1,10 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import CelebViewSet
 
-app_name = 'celeb'
+router = DefaultRouter()
+router.register(r'celeb', CelebViewSet)
 
 urlpatterns = [
-
+    path('', include(router.urls)),
 ]
