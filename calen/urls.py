@@ -1,7 +1,11 @@
-from django.urls import path
+# calendar/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import CalendarViewSet
 
-app_name = 'calen'
+router = DefaultRouter()
+router.register(r'calendar', CalendarViewSet, basename='calendar')
 
 urlpatterns = [
-
+    path('', include(router.urls)),
 ]
