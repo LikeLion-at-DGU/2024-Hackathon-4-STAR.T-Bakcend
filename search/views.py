@@ -34,9 +34,9 @@ class SearchViewSet(viewsets.ViewSet):
                 "title": theme.title,
                 "routine_title": [routine['title'] for routine in routines_serializer.data],
                 "image": theme.image,  # 테마 페이지 대표 사진 URL 사용
-                "url": f"http://start.com/themes/{theme.id}/"  # 실제 테마 페이지 URL을 여기에 추가합니다.
+                "url": f"http://example.com/themes/{theme.id}/"  # 실제 테마 페이지 URL을 여기에 추가합니다.
             })
-
+    
         return Response({
             "celeb": celeb_serializer.data,
             "routines": routine_serializer.data,
