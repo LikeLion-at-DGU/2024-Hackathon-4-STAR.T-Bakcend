@@ -14,10 +14,10 @@ class Routine(models.Model):
     sub_title = models.CharField(max_length=200)
     content = models.TextField()
     category = models.ManyToManyField(RoutineCategory)
-    celebrity = models.ForeignKey(Celeb, on_delete=models.CASCADE)
+    celeb = models.ForeignKey(Celeb, on_delete=models.CASCADE)
     image = models.URLField(null=True, blank=True)
     video_url = models.URLField(null=True, blank=True)
-    theme = models.ForeignKey(Theme, on_delete=models.CASCADE)
+    theme = models.ManyToManyField(Theme)
 
     def __str__(self):
         return self.title
