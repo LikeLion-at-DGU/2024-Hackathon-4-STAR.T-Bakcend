@@ -24,6 +24,6 @@ urlpatterns = [
     path('api/', include('rank.urls')),
     path('api/', include('routine.urls')),
     path('api/', include('search.urls')),
-    path('api/', include('user.urls')),
-    path('user/', include('allauth.urls')),
+    path('api/', include('accounts.urls')),
+    path('accounts/', include('allauth.urls')),
 ]
