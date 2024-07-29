@@ -55,12 +55,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework.authtoken',
     'django.contrib.sites',
-    # allauth - google
-    # 'allauth.socialaccount.providers.google',
-    # allauth - naver
-    # 'allauth.socialaccount.providers.naver',
-    # allauth - kakao
-    'allauth.socialaccount.providers.kakao',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 ]
 
 # allauth site_id
@@ -111,7 +108,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'allauth.account.middleware.AccountMiddleware',
-
 ]
 
 ROOT_URLCONF = 'project.urls'
