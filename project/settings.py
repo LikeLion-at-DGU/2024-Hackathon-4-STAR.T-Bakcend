@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'rank',
     'routine',
     'accounts',
-
+    'allauth.socialaccount.providers.kakao',
     'corsheaders',
     'rest_framework.authtoken',
     'django.contrib.sites',
@@ -64,9 +64,9 @@ SITE_ID = 1
 
 
 # 로그인 후 리디렉션할 페이지
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = 'http://localhost:5173/'
 # 로그아웃 후 리디렉션할 페이지
-ACCOUNT_LOGOUT_REDIRECT_URL = 'home'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 # 로그아웃 버튼 클릭 시 자동 로그아웃
 ACCOUNT_LOGOUT_ON_GET = True
 
@@ -101,7 +101,6 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -196,10 +195,10 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:5173',
-
+    'http://52.78.17.82',
     # 프론트엔드 도메인 또는 IP주소
     # 예를 들어, 아래와 같이 입력.
-    'http://프론트엔드주소',
+    'http://dongguk-start.vercel.app',
     'http://프론트주소:포트번호',
 ]
 
@@ -208,3 +207,5 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:5173', 'http://52.78.17.82', 'http://dongguk-start.vercel.app', 'http://127.0.0.1:5173']
