@@ -1,5 +1,5 @@
 from django.db import models
-from user.models import User
+from accounts.models import User
 from celeb.models import Celeb
 
 class Rank(models.Model):
