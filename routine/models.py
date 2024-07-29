@@ -1,8 +1,5 @@
 from django.db import models
-<<<<<<< HEAD
 
-=======
->>>>>>> a616658c7ba8b5b7e99241f5b2ca36ec616f8260
 
 class RoutineCategory(models.Model):
     name = models.CharField(max_length=100)
