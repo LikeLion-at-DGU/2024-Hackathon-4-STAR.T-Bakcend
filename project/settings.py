@@ -55,7 +55,7 @@ INSTALLED_APPS = [
 
     'django.contrib.sites',
     'allauth',
-        'allauth.account',
+    'allauth.account',
     'allauth.socialaccount',
     # allauth - google
     'allauth.socialaccount.providers.google',
@@ -109,6 +109,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'project.urls'
