@@ -1,7 +1,4 @@
 from django.db import models
-from celeb.models import Celeb
-from search.models import Theme
-
 
 class RoutineCategory(models.Model):
     name = models.CharField(max_length=100)
@@ -14,12 +11,16 @@ class Routine(models.Model):
     sub_title = models.CharField(max_length=200)
     content = models.TextField()
     category = models.ManyToManyField(RoutineCategory)
-    celebrity = models.ForeignKey(Celeb, on_delete=models.CASCADE)
     image = models.URLField(null=True, blank=True)
     video_url = models.URLField(null=True, blank=True)
-    theme = models.ForeignKey(Theme, on_delete=models.CASCADE)
+    theme = models.ForeignKey('search.Theme', on_delete=models.CASCADE)  # use string reference
 
     def __str__(self):
         return self.title
 
+    def get_celebrity(self):
+        from celeb.models import Celeb
+        return Celeb.objects.filter(routines=self)
 
+# Use string reference for the ForeignKey field
+Routine.add_to_class('celebrity', models.ForeignKey('celeb.Celeb', on_delete=models.CASCADE))

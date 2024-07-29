@@ -52,7 +52,51 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'corsheaders',
+
+    'django.contrib.sites',
+    'allauth',
+        'allauth.account',
+    'allauth.socialaccount',
+    # allauth - google
+    'allauth.socialaccount.providers.google',
+    # allauth - naver
+    'allauth.socialaccount.providers.naver',
+    # allauth - kakao
+    'allauth.socialaccount.providers.kakao',
 ]
+
+# allauth site_id
+SITE_ID = 3
+
+
+# 로그인 후 리디렉션할 페이지
+LOGIN_REDIRECT_URL = 'home'
+# 로그아웃 후 리디렉션할 페이지
+ACCOUNT_LOGOUT_REDIRECT_URL = 'home'
+# 로그아웃 버튼 클릭 시 자동 로그아웃
+ACCOUNT_LOGOUT_ON_GET = True
+
+# allauth backends
+AUTHENTICATION_BACKENDS = (
+    # 'allauth' specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+
+    #Needed to login by username in Django admin, regardless of 'allauth'
+    'django.contrib.auth.backends.ModelBackend',
+    
+)
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
