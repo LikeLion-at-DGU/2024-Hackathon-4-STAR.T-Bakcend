@@ -11,11 +11,22 @@ class ThemeSerializer(serializers.ModelSerializer):
 class CelebritySerializer(serializers.ModelSerializer):
     class Meta:
         model = Celeb
-        fields = ['id', 'name', 'category', 'profession']
+        fields = ['id', 'name', 'profession']
 
 class RoutineSerializer(serializers.ModelSerializer):
-    celebrity = serializers.CharField(source='celebrity.name')
-
+    celeb = serializers.CharField(source='celeb.name')
+    
+    category = serializers.SlugRelatedField(
+    many=True,
+    read_only=True,
+    slug_field='name'
+    )
+    
+    theme = serializers.SlugRelatedField(
+    many=True,
+    read_only=True,
+    slug_field='title'
+    )
     class Meta:
         model = Routine
-        fields = ['id', 'title', 'sub_title', 'content', 'category', 'celebrity', 'image', 'video_url']
+        fields = ['id', 'title', 'sub_title', 'content', 'category', 'celeb', 'image', 'video_url','theme']
