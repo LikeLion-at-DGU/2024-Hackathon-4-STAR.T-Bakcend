@@ -15,8 +15,6 @@ class Routine(models.Model):
     sub_title = models.CharField(max_length=200)
     content = models.TextField()
     category = models.ManyToManyField(RoutineCategory)
-
-    celeb = models.ForeignKey('celeb.Celeb', on_delete=models.CASCADE)
     image = models.URLField(null=True, blank=True)
     video_url = models.URLField(null=True, blank=True)
     theme = models.ForeignKey('search.Theme', on_delete=models.CASCADE)  # use string reference
