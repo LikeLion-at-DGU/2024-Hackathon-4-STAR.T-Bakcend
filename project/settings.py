@@ -55,9 +55,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework.authtoken',
     'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
 ]
 
 # allauth site_id
