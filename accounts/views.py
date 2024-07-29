@@ -37,23 +37,22 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         pass
 
+PROVIDER_LIST = ['kakao', 'google']
 
 # 소셜 로그인 성공 후, 장고 template 페이지로 이동하지 않도록 잡아주는 handler
 # 용도에 맞게 커스터마이징 가능함
 @receiver(pre_social_login)
 def link_to_local_user(sender, request, sociallogin, **kwargs):
-    email_address = sociallogin.account.extra_data.get('email')
-    
-    if not email_address:
-        # email 키가 없는 경우의 예외 처리
-        print("Email address not provided by Kakao")
+    provider = sociallogin.account.provider
+
+    if provider == 'kakao':
+        email_address = sociallogin.account.extra_data.get('kakao_account').get('email')
+    elif provider == 'google':
+        email_address = sociallogin.account.extra_data.get('email')
+    else:
+        print('Provider 없음')
         return
 
-    try:
-        user = User.objects.get(email=email_address)
-        sociallogin.connect(request, user)
-    except User.DoesNotExist:
-        pass
     
     User = get_user_model()
     users = User.objects.filter(email=email_address)
@@ -71,19 +70,22 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
         response.set_cookie(
             key='access_token',
             value=access_token,
+            domain='likelion-start.site',
             httponly=True,
-            secure=True,
+            secure=False,
             samesite='Lax'
         )
         response.set_cookie(
             key='refresh_token',
             value=refresh_token,
+            domain='likelion-start.site',
             httponly=True,
-            secure=True,
+            secure=False,
             samesite='Lax'
         )
-
         raise ImmediateHttpResponse(response)
+    
+    return 
 
 def home(request):
     return render(request, 'home.html')
