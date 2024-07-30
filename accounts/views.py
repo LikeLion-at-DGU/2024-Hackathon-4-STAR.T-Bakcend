@@ -83,6 +83,7 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
             secure=False,
             samesite='Lax'
         )
+
         raise ImmediateHttpResponse(response)
     
     return 

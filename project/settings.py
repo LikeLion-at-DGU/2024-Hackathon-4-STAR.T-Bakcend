@@ -203,11 +203,6 @@ CORS_ALLOWED_ORIGINS = [
     'http://프론트주소:포트번호',
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-}
 
 #CSRF_TRUSTED_ORIGINS = ['http://localhost:5173', 'http://52.78.17.82', 'http://dongguk-start.vercel.app', 'http://127.0.0.1:5173']
 
@@ -243,11 +238,12 @@ REST_AUTH = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+        'dj_rest_auth.jwt_auth.JWTAuthentication', # 디버깅용
+        #'dj_rest_auth.jwt_auth.JWTCookieAuthentication' # 실 사용 코드
     ],
     '''유저 인증 구현 뒤, 수정할 것'''
     'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.IsAuthenticated',
-        'rest_framework.permissions.AllowAny'
+        # 'rest_framework.permissions.IsAuthenticated', # 실 사용 코드 # permission_classes 뷰셋마다 설정해주기
+        'rest_framework.permissions.AllowAny' # 디버깅용
     ],
 }
