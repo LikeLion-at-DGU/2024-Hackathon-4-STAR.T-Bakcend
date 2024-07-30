@@ -4,6 +4,8 @@ from celeb.models import Celeb
 from routine.models import Routine
 
 class ThemeSerializer(serializers.ModelSerializer):
+    
+    
     class Meta:
         model = Theme
         fields = ['id', 'title', 'content', 'image']
@@ -14,7 +16,7 @@ class CelebritySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'profession']
 
 class RoutineSerializer(serializers.ModelSerializer):
-    celeb = serializers.CharField(source='celeb.name')
+    celeb = serializers.CharField(source='celebrity.name')
     
     category = serializers.SlugRelatedField(
     many=True,
