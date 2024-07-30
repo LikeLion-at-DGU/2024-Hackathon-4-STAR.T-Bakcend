@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.db import models
 from routine.models import Routine
+from project import settings
 
 class UserRoutine(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
