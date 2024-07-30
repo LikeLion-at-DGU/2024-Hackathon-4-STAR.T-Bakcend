@@ -23,7 +23,7 @@ class GoogleLoginView(SocialLoginView):
 
 class KakaoLoginView(SocialLoginView):
     adapter_class = KakaoOAuth2Adapter
-    callback_url = 'http://127.0.0.1:8000/api/accounts/kakao/login/callback/'
+    callback_url = 'https://likelion-start.site/api/accounts/kakao/login/callback/'
     client_class = OAuth2Client
 
 
