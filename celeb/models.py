@@ -7,10 +7,3 @@ class Celeb(models.Model):
 
     def __str__(self):
         return self.name
-
-    def get_routines(self):
-        from routine.models import Routine
-        return self.routines.all()
-
-# Use string reference for the ManyToManyField
-Celeb.add_to_class('routines', models.ManyToManyField('routine.Routine'))

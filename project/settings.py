@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import environ, os
+import datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,63 +41,59 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+    'rest_framework',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'rest_framework_simplejwt',
     'search',
-    'user',
     'calen',
     'celeb',
     'rank',
     'routine',
-
-
-
-    'rest_framework',
-    'corsheaders',
-
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    # allauth - google
-    'allauth.socialaccount.providers.google',
-    # allauth - naver
-    'allauth.socialaccount.providers.naver',
-    # allauth - kakao
+    'accounts',
     'allauth.socialaccount.providers.kakao',
+    'corsheaders',
+    'rest_framework.authtoken',
+    'django.contrib.sites',
 ]
 
 # allauth site_id
-SITE_ID = 3
+SITE_ID = 1
 
 
 # 로그인 후 리디렉션할 페이지
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = 'https://likelion-start.site/'
 # 로그아웃 후 리디렉션할 페이지
-ACCOUNT_LOGOUT_REDIRECT_URL = 'home'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 # 로그아웃 버튼 클릭 시 자동 로그아웃
 ACCOUNT_LOGOUT_ON_GET = True
 
 # allauth backends
 AUTHENTICATION_BACKENDS = (
-    # 'allauth' specific authentication methods, such as login by e-mail
-    'allauth.account.auth_backends.AuthenticationBackend',
 
     #Needed to login by username in Django admin, regardless of 'allauth'
     'django.contrib.auth.backends.ModelBackend',
+
+    # 'allauth' specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
     
 )
 
+AUTH_USER_MODEL = 'accounts.User'
+
 SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
+    'kakao': {
+            'APP': {
+                'client_id': 'eb4a29d67368c4c6874115f3af730991',
+                
+            },
+            'SCOPE': ['account_email'],
+            'AUTH_PARAMS': {'access_type': 'online'},
         }
     }
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -105,7 +102,6 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -200,9 +196,58 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:5173',
-
+    'http://52.78.17.82',
     # 프론트엔드 도메인 또는 IP주소
     # 예를 들어, 아래와 같이 입력.
-    'http://프론트엔드주소',
+    'http://dongguk-start.vercel.app',
     'http://프론트주소:포트번호',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+#CSRF_TRUSTED_ORIGINS = ['http://localhost:5173', 'http://52.78.17.82', 'http://dongguk-start.vercel.app', 'http://127.0.0.1:5173']
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    "TOKEN_USER_CLASS": AUTH_USER_MODEL,
+}
+
+REST_AUTH = {
+    'TOKEN_MODEL': None,
+    'USE_JWT': True,
+    'JWT_AUTH_HTTPONLY': False,
+    'JWT_AUTH_COOKIE_USE_CSRF': False,
+    'JWT_AUTH_SECURE': False,
+    'SESSION_LOGIN': False,
+    'JWT_AUTH_COOKIE': 'access_token',
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh_token',
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+    ],
+    '''유저 인증 구현 뒤, 수정할 것'''
+    'DEFAULT_PERMISSION_CLASSES': [
+        # 'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny'
+    ],
+}
