@@ -87,7 +87,7 @@ AUTH_USER_MODEL = 'accounts.User'
 SOCIALACCOUNT_PROVIDERS = {
     'kakao': {
             'APP': {
-                'client_id': env('KAKAO_CLIENT_ID'),
+                'client_id': 'eb4a29d67368c4c6874115f3af730991',
                 
             },
             'SCOPE': ['account_email'],

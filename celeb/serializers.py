@@ -1,21 +1,20 @@
 from rest_framework import serializers
 from .models import Celeb
-from rank.models import Rank
+from rank.models import CelebScore
+
+class CelebScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CelebScore
+        fields = '__all__'
 
 class CelebSerializer(serializers.ModelSerializer):
-    user_score = serializers.SerializerMethodField()
+    scores = serializers.SerializerMethodField()
 
     class Meta:
         model = Celeb
-        fields = ['id', 'name', 'photo', 'routines', 'user_score']
+        fields = '__all__'
 
-    def get_user_score(self, obj):
-        request = self.context.get('request')
-        user = request.user if request else None
-        if user:
-            try:
-                score = Rank.objects.get(user=user, celeb=obj).score
-                return score
-            except Rank.DoesNotExist:
-                return 0
-        return 0
+    def get_scores(self, obj):
+        user = self.context['request'].user
+        scores = CelebScore.objects.filter(celeb=obj, user=user)
+        return CelebScoreSerializer(scores, many=True).data
