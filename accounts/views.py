@@ -23,7 +23,7 @@ class GoogleLoginView(SocialLoginView):
 
 class KakaoLoginView(SocialLoginView):
     adapter_class = KakaoOAuth2Adapter
-    callback_url = 'http://127.0.0.1:8000/api/accounts/kakao/login/callback/'
+    callback_url = 'https://likelion-start.site/api/accounts/kakao/login/callback/'
     client_class = OAuth2Client
 
 
@@ -55,7 +55,7 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
 
     
     User = get_user_model()
-    users = User.objects.filter(email=email_address)
+    users = User.objects.filter(email=email_address) 
     if users:
         perform_login(request, users[0], email_verification='optional')
 
