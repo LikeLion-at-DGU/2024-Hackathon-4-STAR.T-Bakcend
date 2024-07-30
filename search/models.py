@@ -1,4 +1,5 @@
 from django.db import models
+from rest_framework import serializers
 
 class Theme(models.Model):
     title = models.CharField(max_length=100)
@@ -7,3 +8,4 @@ class Theme(models.Model):
 
     def __str__(self):
         return self.title
+    

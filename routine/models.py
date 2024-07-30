@@ -14,7 +14,11 @@ class Routine(models.Model):
     category = models.ManyToManyField(RoutineCategory)
     image = models.URLField(null=True, blank=True)
     video_url = models.URLField(null=True, blank=True)
-    theme = models.ForeignKey('search.Theme', on_delete=models.CASCADE)  # use string reference
+    theme = models.ManyToManyField('search.Theme')  # use ManyToManyField
+    popular =models.IntegerField(default=0)
+    create_at = models.DateField(null = True)
+    
+    
 
     def __str__(self):
         return self.title
@@ -23,5 +27,6 @@ class Routine(models.Model):
         from celeb.models import Celeb
         return Celeb.objects.filter(routines=self)
 
-# Use string reference for the ForeignKey field
+# # Use string reference for the ForeignKey field #admin 페이지에 접근이 안되서 필드를 추가했습니다.
+
 Routine.add_to_class('celebrity', models.ForeignKey('celeb.Celeb', on_delete=models.CASCADE))

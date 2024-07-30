@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
-
+from routine.models import RoutineCategory
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -21,6 +21,7 @@ class User(AbstractUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    preferred_routine_categories = models.ManyToManyField(RoutineCategory, blank=True)  # 선호 카테고리 추가
 
     groups = models.ManyToManyField(
         Group,
