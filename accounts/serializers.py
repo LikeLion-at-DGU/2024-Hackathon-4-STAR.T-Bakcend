@@ -21,3 +21,7 @@ class CustomRoutineSerializer(serializers.Serializer):
         if not value:
             raise serializers.ValidationError("Preferred routine categories are required.")
         return value
+    
+
+class NicknameSerializer(serializers.Serializer):
+    nickname = serializers.CharField(max_length=30)
