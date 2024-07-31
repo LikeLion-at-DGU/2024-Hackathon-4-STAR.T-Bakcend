@@ -61,5 +61,6 @@ class ThemeDetailViewSet(viewsets.ViewSet):
             "theme_id": theme.id,
             "theme_title": theme.title,
             "theme_content": theme.content,
+            "theme_image" : theme.image,
             "routine": routine_serializer.data
         })

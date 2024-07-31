@@ -14,7 +14,6 @@ from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import redirect
 from django.shortcuts import render
-
 from rest_framework import viewsets
 from .models import User
 from .serializers import UserSerializer
