@@ -28,21 +28,21 @@ class MainPageViewSet(viewsets.ViewSet):
     def list(self, request):
         user = request.user
         user_routines = []  # 초기화 # 유저 인증 해결 되면 반환 됨
-        # 유저 인증 되면 로직 수정!!
-        # if request.user.is_authenticated:
-        #     user_categories = user.preferred_routine_categories.all()
-        #     if user_categories.exists():
-        #         user_routines = Routine.objects.filter(category__in=user_categories).distinct()
-        #     else:
-        #         user_routines = Routine.objects.all().order_by("?")[:10]
-        #         print("유저가 선택한 맞춤형 루틴이 없습니다!!!!!")
-        print("유저가 선택한 맞춤형 루틴이 없습니다!!!!!") #일단 무작위
-        user_routines = Routine.objects.all().order_by("?")[:10]
-
+        
+        if user.is_authenticated:
+            user_categories = user.preferred_routine_categories.all()
+            if user_categories.exists():
+                user_routines = Routine.objects.filter(category__in=user_categories).distinct()
+            else:
+                user_routines = Routine.objects.all().order_by("?")[:10]
+                print("유저가 선택한 맞춤형 루틴이 없습니다!!!!!")
+        else:
+            print("유저가 선택한 맞춤형 루틴이 없습니다!!!!!")  # 일단 무작위
+            user_routines = Routine.objects.all().order_by("?")[:10]
+            
         hot_routines = Routine.objects.order_by('-popular')[:10]
         latest_routines = Routine.objects.order_by('-create_at')[:10]
         themes = Theme.objects.all()
-
 
         theme_data = []
         for theme in themes:
@@ -52,34 +52,38 @@ class MainPageViewSet(viewsets.ViewSet):
                 "title": theme.title,
                 "routine_title": [routine['title'] for routine in routines_serializer.data],
                 "image": theme.image,
-                "url": f"https://www.likelion-start.site/api/theme/{theme.id}/"
+                "url": theme.id
             })
 
-        def create_routine_data(routines):
+        def create_routine_data(routines, include_popular=False):
             routine_data = []
             for routine in routines:
                 # routine.celebrity가 유효한 Celebrity 객체인지 확인
                 if not hasattr(routine.celebrity, 'id'):
                     continue  # celebrity가 유효하지 않으면 무시
-                routine_data.append({
+                routine_info = {
                     "id": routine.id,
                     "title": routine.title,
                     "celeb_name": routine.celebrity.name,
                     "image": routine.image,
                     "create_at": routine.create_at,  # 추가된 필드
-                    "url": f"https://www.likelion-start.site/api/celeb/{routine.celebrity.id}/"  # Celeb 페이지 URL
-                })
+                    "url": routine.celebrity.id  # Celeb 페이지 URL
+                }
+                if include_popular:
+                    routine_info["popular"] = routine.popular
+                routine_data.append(routine_info)
             return routine_data
 
         new_update_data = create_routine_data(latest_routines)
-        hot_routine_data = create_routine_data(hot_routines)
         user_routine_data = create_routine_data(user_routines)
+        hot_routine_data = create_routine_data(hot_routines, include_popular=True)
 
         return Response({
             "theme": theme_data,
-            "new_routine": new_update_data,
+            "new_update": new_update_data,
             "user_routine": user_routine_data,
             "hot_routine": hot_routine_data,
         })
+
 
             
