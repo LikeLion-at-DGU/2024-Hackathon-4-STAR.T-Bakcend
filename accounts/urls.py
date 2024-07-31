@@ -1,19 +1,19 @@
-from django.urls import path
-from django.conf.urls import include
+# accounts/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from accounts.views import (
     GoogleLoginView,
     KakaoLoginView,
     NaverLoginView,
+    UserViewSet
 )
-from . import views
+
+router = DefaultRouter()
+router.register(r'user', UserViewSet)
 
 urlpatterns = [
-    path('', include('dj_rest_auth.urls')),
-    path('', include('dj_rest_auth.registration.urls')),
-
-    path('', include('allauth.urls')),
     path('kakao/login/', KakaoLoginView.as_view(), name='api_accounts_kakao_oauth'),
     path('google/login/', GoogleLoginView.as_view(), name='api_accounts_google_oauth'),
     path('naver/login/', NaverLoginView.as_view(), name='api_accounts_naver_oauth'),
-    path('', views.home, name = 'home')
+    path('', include(router.urls)),
 ]

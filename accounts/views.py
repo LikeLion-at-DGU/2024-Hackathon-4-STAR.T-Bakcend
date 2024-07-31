@@ -1,3 +1,4 @@
+# accounts/views.py
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.naver.views import NaverOAuth2Adapter
@@ -14,24 +15,24 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import redirect
 from django.shortcuts import render
 
+from rest_framework import viewsets
+from .models import User
+from .serializers import UserSerializer
 
 class GoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     callback_url = 'http://127.0.0.1:8000/api/accounts/google/login/callback/'
     client_class = OAuth2Client
 
-
 class KakaoLoginView(SocialLoginView):
     adapter_class = KakaoOAuth2Adapter
     callback_url = 'https://likelion-start.site/api/accounts/kakao/login/callback/'
     client_class = OAuth2Client
 
-
 class NaverLoginView(SocialLoginView):
     adapter_class = NaverOAuth2Adapter
     callback_url = 'http://127.0.0.1:8000/api/accounts/naver/login/callback/'
     client_class = OAuth2Client
-
 
 class MySocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
@@ -39,8 +40,6 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
 
 PROVIDER_LIST = ['kakao', 'google']
 
-# 소셜 로그인 성공 후, 장고 template 페이지로 이동하지 않도록 잡아주는 handler
-# 용도에 맞게 커스터마이징 가능함
 @receiver(pre_social_login)
 def link_to_local_user(sender, request, sociallogin, **kwargs):
     provider = sociallogin.account.provider
@@ -53,7 +52,6 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
         print('Provider 없음')
         return
 
-    
     User = get_user_model()
     users = User.objects.filter(email=email_address)
     if users:
@@ -63,9 +61,6 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
 
-        # LOGIN_REDIRECT_URL에 원하는 값 넣어서 전달 가능함
-        # ex) api/users/{userId} => userId가 들어가서 redirect 될 수 있음
-        #     settings.LOGIN_REDIRECT_URL.format(userId=users[0].id)
         response = redirect(settings.LOGIN_REDIRECT_URL)
         response.set_cookie(
             key='access_token',
@@ -85,8 +80,11 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
         )
 
         raise ImmediateHttpResponse(response)
-    
-    return 
+    return
 
 def home(request):
     return render(request, 'home.html')
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
