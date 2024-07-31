@@ -14,12 +14,14 @@ from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import redirect
 from django.shortcuts import render
-from rest_framework import viewsets
-from .models import User
-from .serializers import UserSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework import status, viewsets
+from rest_framework.views import APIView
+from .serializers import CustomRoutineSerializer,UserSerializer
+from .models import User
+from routine.serializers import RoutineCategorySerializer
+
 
 class GoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
@@ -98,3 +100,77 @@ class UserViewSet(viewsets.ViewSet):
         users = User.objects.filter(email=user.email)
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
+    
+
+
+class CustomRoutineView(APIView):
+    permission_classes = [AllowAny]  # 모든 사용자에게 접근 허용
+
+    def get(self, request):
+        if not request.user.is_authenticated: #인증
+            return Response({"message": "인증 되지 않은 사용자입니다."}, status=status.HTTP_401_UNAUTHORIZED)
+        user = request.user
+        preferred_routine_categories = user.preferred_routine_categories.all()
+        serializer = RoutineCategorySerializer(preferred_routine_categories, many=True)
+        if serializer.is_valid:
+            return Response({
+                "status": 200,
+                "preferred_routine_categories": serializer.data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "User prefer routine categories do not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return Response({"message": "인증되지 않은 사용자입니다."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        serializer = CustomRoutineSerializer(data=request.data)
+        if serializer.is_valid():
+            preferred_routine_categories = serializer.validated_data['preferred_routine_categories']
+            user = request.user  # 현재 사용자 가져오기
+            if not user:
+                return Response({"message": "No user available for testing."}, status=status.HTTP_400_BAD_REQUEST)
+            user.preferred_routine_categories.set(preferred_routine_categories)
+            user.save()
+            return Response({
+                "status": 200,
+                "message": "Preferred routine categories updated successfully."
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "status": 400,
+                "message": serializer.errors  # 에러 메시지 반환
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request):
+        if not request.user.is_authenticated:
+            return Response({"message": "인증되지 않은 사용자입니다."}, status=status.HTTP_401_UNAUTHORIZED)
+        serializer = CustomRoutineSerializer(data=request.data, partial=True)
+        if serializer.is_valid():
+            preferred_routine_categories = serializer.validated_data['preferred_routine_categories']
+            user = request.user
+            for category in preferred_routine_categories:
+                if not user.preferred_routine_categories.filter(id=category.id).exists():
+                    user.preferred_routine_categories.add(category)
+            user.save()
+            return Response({
+                "status": 200,
+                "message": "Preferred routine categories updated successfully."
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "status": 400,
+                "message": "Preferred routine categories are required."
+            }, status=status.HTTP_400_BAD_REQUEST)
+    ## 선호 루틴 삭제
+    # def delete(self, request):
+    # if not request.user.is_authenticated:
+    #         return Response({"message": "인증되지 않은 사용자입니다."}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    #     user = request.user
+    #     user.preferred_routine_categories.clear()
+    #     user.save()
+    #     return Response({
+    #         "status": 200,
+    #         "message": "Preferred routine categories cleared successfully."
+    #     }, status=status.HTTP_200_OK)
