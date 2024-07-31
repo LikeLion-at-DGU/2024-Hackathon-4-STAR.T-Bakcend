@@ -318,7 +318,7 @@ SITE_ID = 1
 
 
 # 로그인 후 리디렉션할 페이지
-LOGIN_REDIRECT_URL = 'https://likelion-start.site/'
+LOGIN_REDIRECT_URL = 'https://likelion-start.site/signup'
 # 로그아웃 후 리디렉션할 페이지
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 # 로그아웃 버튼 클릭 시 자동 로그아웃
