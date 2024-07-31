@@ -149,6 +149,7 @@ class CustomRoutineView(APIView):
         if serializer.is_valid():
             preferred_routine_categories = serializer.validated_data['preferred_routine_categories']
             user = request.user
+            user.preferred_routine_categories.clear() # 기존 값들 제거
             for category in preferred_routine_categories:
                 if not user.preferred_routine_categories.filter(id=category.id).exists():
                     user.preferred_routine_categories.add(category)
