@@ -14,7 +14,7 @@ class RoutineSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='name'
     )
-    celeb = serializers.SlugRelatedField(
+    celebrity = serializers.SlugRelatedField(
         read_only=True,
         slug_field='name'
     ) 
@@ -26,4 +26,4 @@ class RoutineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Routine
-        fields = ['id', 'title', 'sub_title', 'content', 'image', 'video_url', 'category', 'celeb', 'theme']
+        fields = ['id', 'title', 'sub_title', 'content', 'image', 'video_url', 'category', 'celebrity', 'theme']

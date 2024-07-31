@@ -491,12 +491,14 @@ REST_AUTH = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'dj_rest_auth.jwt_auth.JWTAuthentication', # 디버깅용
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        #'dj_rest_auth.jwt_auth.JWTAuthentication', # 디버깅용
         #'dj_rest_auth.jwt_auth.JWTCookieAuthentication' # 실 사용 코드
     ],
     '''유저 인증 구현 뒤, 수정할 것'''
     'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.IsAuthenticated', # 실 사용 코드 # permission_classes 뷰셋마다 설정해주기
+        #'rest_framework.permissions.IsAuthenticated', # 실 사용 코드 # permission_classes 뷰셋마다 설정해주기
         'rest_framework.permissions.AllowAny' # 디버깅용
     ],
 }

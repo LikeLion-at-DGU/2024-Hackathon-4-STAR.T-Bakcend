@@ -17,7 +17,8 @@ class SearchViewSet(viewsets.ViewSet):
         celebrities = Celeb.objects.filter(name__icontains=data) | Celeb.objects.filter(profession__icontains=data)
         routines = Routine.objects.filter(title__icontains=data) #| Routine.objects.filter(content__icontains=data)
         themes = Theme.objects.filter(title__icontains=data) #| Theme.objects.filter(content__icontains=data)
-
+        print(celebrities)
+        print(themes)
         # 직렬화
         celeb_serializer = CelebritySerializer(celebrities, many=True)
         routine_serializer = RoutineSerializer(routines, many=True)
