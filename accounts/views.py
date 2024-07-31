@@ -18,7 +18,7 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from rest_framework.views import APIView
-from .serializers import CustomRoutineSerializer,UserSerializer
+from .serializers import CustomRoutineSerializer,UserSerializer,NicknameSerializer
 from .models import User
 from routine.serializers import RoutineCategorySerializer
 
@@ -175,3 +175,18 @@ class CustomRoutineView(APIView):
     #         "status": 200,
     #         "message": "Preferred routine categories cleared successfully."
     #     }, status=status.HTTP_200_OK)
+
+
+class UpdateNicknameView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = NicknameSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            user = request.user
+            user.nickname = serializer.validated_data['nickname']
+            user.save()
+            return Response({"status": 200, "message": "정상적으로 등록되었습니다."}, status=status.HTTP_200_OK)
+        
+        return Response({"status": 400, "message": "닉네임을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)  
