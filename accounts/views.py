@@ -18,6 +18,9 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from .models import User
 from .serializers import UserSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 
 class GoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
@@ -85,6 +88,14 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
 def home(request):
     return render(request, 'home.html')
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+class UserViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated] 
+
+    def list(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return Response({'error': 'User not authenticated'}, status=401)
+        
+        users = User.objects.filter(email=user.email)
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
