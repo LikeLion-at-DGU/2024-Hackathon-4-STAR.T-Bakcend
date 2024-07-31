@@ -9,7 +9,7 @@ from accounts.views import (
 )
 
 router = DefaultRouter()
-router.register(r'user', UserViewSet)
+router.register(r'user', UserViewSet, basename='user')
 
 urlpatterns = [
     path('kakao/login/', KakaoLoginView.as_view(), name='api_accounts_kakao_oauth'),
