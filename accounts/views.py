@@ -193,14 +193,14 @@ class UpdateNicknameView(APIView):
         return Response({"status": 400, "message": "닉네임을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MypageViewSet(viewsets.ViewSet):
-    #permission_classes = [IsAuthenticated]
+class MypageView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    def list(self, request):
+    def get(self, request):
         try:
-            user = request.user
             print(f"Request: {request}")  # 로그 추가
-            print(f"User: {user}")  # 로그 추가
+            print(f"User: {request.user}")  # 로그 추가
+            user = request.user
 
             # user 객체에 nickname 필드가 있는지 확인
             nickname = getattr(user, 'nickname', None)
