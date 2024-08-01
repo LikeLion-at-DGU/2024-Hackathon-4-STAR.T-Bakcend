@@ -209,14 +209,25 @@ class CalendarViewSet(viewsets.ViewSet):
         if end_date < date.today():
             return Response({'error': 'End date cannot be in the past.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        duration = (end_date - start_date).days + 1
+        # Create or update UserRoutine instance
+        user_routine, created = UserRoutine.objects.update_or_create(
+            user=user,
+            routine=routine,
+            defaults={
+                'start_date': start_date,
+                'end_date': end_date,
+            }
+        )
 
+        # Serialize the UserRoutine instance
+        serializer = UserRoutineSerializer(user_routine)
+        
         response_data = {
-            'id': id,
+            'id': user_routine.id,
             'user': user.id,
             'start_date': start_date.strftime('%Y-%m-%d'),
             'end_date': end_date.strftime('%Y-%m-%d'),
-            'duration_days': duration
+            'duration_days': (end_date - start_date).days + 1
         }
 
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
