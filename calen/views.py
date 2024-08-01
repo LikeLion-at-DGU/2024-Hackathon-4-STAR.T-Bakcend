@@ -10,6 +10,7 @@ from .models import UserRoutine, PersonalSchedule, MonthlyTitle, UserRoutineComp
 from .serializers import UserRoutineSerializer, PersonalScheduleSerializer, MonthlyTitleSerializer, UserRoutineCompletionSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
+from routine.models import Routine
 
 class CalendarViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -187,8 +188,8 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
 
         try:
-            routine = UserRoutine.objects.get(id=id, user=user)
-        except UserRoutine.DoesNotExist:
+            routine = Routine.objects.get(id=id)  # 여기서 Routine을 가져옵니다.
+        except Routine.DoesNotExist:
             return Response({'error': 'Routine not found'}, status=status.HTTP_404_NOT_FOUND)
 
         start_date_str = request.data.get('start_date')
@@ -209,25 +210,12 @@ class CalendarViewSet(viewsets.ViewSet):
         if end_date < date.today():
             return Response({'error': 'End date cannot be in the past.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create or update UserRoutine instance
-        user_routine, created = UserRoutine.objects.update_or_create(
+        user_routine = UserRoutine.objects.create(
             user=user,
             routine=routine,
-            defaults={
-                'start_date': start_date,
-                'end_date': end_date,
-            }
+            start_date=start_date,
+            end_date=end_date
         )
 
-        # Serialize the UserRoutine instance
         serializer = UserRoutineSerializer(user_routine)
-        
-        response_data = {
-            'id': user_routine.id,
-            'user': user.id,
-            'start_date': start_date.strftime('%Y-%m-%d'),
-            'end_date': end_date.strftime('%Y-%m-%d'),
-            'duration_days': (end_date - start_date).days + 1
-        }
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
