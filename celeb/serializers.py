@@ -7,7 +7,7 @@ from routine.models import Routine
 class CelebScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = CelebScore
-        fields = '__all__'
+        fields = ['celeb','score']
 
 class CelebSerializer(serializers.ModelSerializer):
     scores = serializers.SerializerMethodField()

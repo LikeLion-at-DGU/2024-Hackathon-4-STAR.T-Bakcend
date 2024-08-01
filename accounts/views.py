@@ -17,7 +17,7 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
 from rest_framework import status, viewsets,generics
 from rest_framework.views import APIView
-from .serializers import CustomRoutineSerializer,UserSerializer,NicknameSerializer
+from .serializers import CustomRoutineSerializer,UserSerializer,NicknameSerializer ,UserProfileSerializer
 from .models import User
 from rank.models import CelebScore
 from rank.serializers import CelebScoreSerializer
@@ -194,26 +194,11 @@ class UpdateNicknameView(APIView):
         return Response({"status": 400, "message": "닉네임을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MyPageView(generics.RetrieveUpdateAPIView):
-    permission_classes = [AllowAny]
-    serializer_class = NicknameSerializer
+class UserProfileView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
-
-    def retrieve(self, request, *args, **kwargs):
-        user = self.get_object()
-        nickname_serializer = self.get_serializer(user)
-
-        # 상위 3개의 셀럽 점수 가져오기
-        celeb_scores = CelebScore.objects.filter(user=user).select_related('celeb').order_by('-score')[:3]
-        celeb_data = CelebScoreSerializer(celeb_scores, many=True).data
-
-        response_data = {
-            'nickname': nickname_serializer.data.get('nickname', 'No nickname available'),
-            'celebs': celeb_data
-        }
-        return Response(response_data)
-
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+    
