@@ -197,10 +197,13 @@ class MypageViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request):
+        user = request.user
+        nickanme_serializer =NicknameSerializer(user)
         
-        celeb_scores = CelebScore.objects.filter(user=request.user).order_by('-score')[:3]
+        celeb_scores = CelebScore.objects.filter(user=user).order_by('-score')[:3]
         celeb_score_serializer = CelebScoreSerializer(celeb_scores, many=True)
         
         return Response({
+            'nickname' : nickanme_serializer.data['nickname'],
             "celebs": celeb_score_serializer.data
         })
