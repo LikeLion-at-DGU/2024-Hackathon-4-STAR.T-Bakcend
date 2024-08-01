@@ -178,3 +178,45 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response({'error': 'PersonalSchedule not found'}, status=status.HTTP_404_NOT_FOUND)
         except ValueError:
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    @action(detail=True, methods=['post'])
+    def add_routine(self, request, id=None):
+        user = self.get_user(request)
+
+        if user is None:
+            return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            routine = UserRoutine.objects.get(id=id, user=user)
+        except UserRoutine.DoesNotExist:
+            return Response({'error': 'Routine not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        start_date_str = request.data.get('start_date')
+        end_date_str = request.data.get('end_date')
+
+        if not start_date_str or not end_date_str:
+            return Response({'error': 'Start date and end date are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            start_date = parse_date(start_date_str)
+            end_date = parse_date(end_date_str)
+        except ValueError:
+            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if start_date > end_date:
+            return Response({'error': 'End date must be after start date.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if end_date < date.today():
+            return Response({'error': 'End date cannot be in the past.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        duration = (end_date - start_date).days + 1
+
+        response_data = {
+            'id': id,
+            'user': user.id,
+            'start_date': start_date.strftime('%Y-%m-%d'),
+            'end_date': end_date.strftime('%Y-%m-%d'),
+            'duration_days': duration
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
