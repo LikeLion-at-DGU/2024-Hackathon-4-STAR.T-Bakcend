@@ -179,7 +179,7 @@ class CustomRoutineView(APIView):
 
 
 class UpdateNicknameView(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = NicknameSerializer(data=request.data)
@@ -194,16 +194,26 @@ class UpdateNicknameView(APIView):
 
 
 class MypageViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def list(self, request):
-        user = request.user
-        nickname = user.nickname
-        
-        celeb_scores = CelebScore.objects.filter(user=user).order_by('-score')[:3]
-        celeb_score_serializer = CelebScoreSerializer(celeb_scores, many=True)
-        
-        return Response({
-            'nickname' : nickname,
-            "celebs": celeb_score_serializer.data
-        })
+        try:
+            user = request.user
+            print(f"Request: {request}")  # 로그 추가
+            print(f"User: {user}")  # 로그 추가
+
+            # user 객체에 nickname 필드가 있는지 확인
+            nickname = getattr(user, 'nickname', None)
+            if not nickname:
+                return Response({'error': 'User does not have a nickname.'}, status=400)
+            
+            celeb_scores = CelebScore.objects.filter(user=user).order_by('-score')[:3]
+            celeb_score_serializer = CelebScoreSerializer(celeb_scores, many=True)
+            
+            return Response({
+                'nickname': nickname,
+                'celebs': celeb_score_serializer.data
+            })
+        except Exception as e:
+            print(f"Error: {e}")  # 에러 로그 추가
+            return Response({'error': str(e)}, status=500)

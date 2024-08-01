@@ -56,7 +56,6 @@ class ThemeDetailViewSet(viewsets.ViewSet):
         theme_serializer = ThemeSerializer(theme)
         routines = Routine.objects.filter(theme=theme)
         routine_serializer = RoutineSerializer(routines, many=True)
-        
         return Response({
             "theme_id": theme.id,
             "theme_title": theme.title,
