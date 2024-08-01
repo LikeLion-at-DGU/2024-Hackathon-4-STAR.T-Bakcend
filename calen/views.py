@@ -201,6 +201,8 @@ class CalendarViewSet(viewsets.ViewSet):
         try:
             start_date = parse_date(start_date_str)
             end_date = parse_date(end_date_str)
+            if start_date is None or end_date is None:
+                raise ValueError("Invalid date format")
         except ValueError:
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -217,5 +219,6 @@ class CalendarViewSet(viewsets.ViewSet):
             end_date=end_date
         )
 
-        serializer = UserRoutineSerializer(user_routine)
+        # 시리얼라이저에 컨텍스트를 전달합니다.
+        serializer = UserRoutineSerializer(user_routine, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
