@@ -194,11 +194,18 @@ class UpdateNicknameView(APIView):
         return Response({"status": 400, "message": "닉네임을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# 사용자 프로필 정보를 가져오는 뷰
 class UserProfileView(generics.RetrieveAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()  # 모든 사용자를 쿼리셋으로 설정 (실제 사용자는 get_object 메서드를 통해 얻음)
+    serializer_class = UserProfileSerializer  # 사용할 Serializer 지정
+    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
 
     def get_object(self):
-        return self.request.user
-    
+        # 현재 인증된 사용자를 반환하는 메서드
+        return self.request.user  # 요청한 사용자 객체를 반환
+
+    def get_serializer_context(self):
+        # request 객체를 context에 추가
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context

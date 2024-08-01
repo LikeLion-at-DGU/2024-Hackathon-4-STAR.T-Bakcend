@@ -23,6 +23,10 @@ class CelebSerializer(serializers.ModelSerializer):
         return RoutineSerializer(routines, many=True).data
 
     def get_scores(self, obj):
-        user = self.context['request'].user
-        scores = CelebScore.objects.filter(celeb=obj, user=user)
-        return CelebScoreSerializer(scores, many=True).data
+            # context에서 request 객체를 안전하게 가져옴
+            request = self.context.get('request', None)
+            if request is None:
+                return []
+            user = request.user
+            scores = CelebScore.objects.filter(celeb=obj, user=user)
+            return CelebScoreSerializer(scores, many=True).data
