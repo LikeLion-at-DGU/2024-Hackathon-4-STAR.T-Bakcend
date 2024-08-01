@@ -8,7 +8,8 @@ from accounts.views import (
     UserViewSet,
     CustomRoutineView,
     UpdateNicknameView,
-    MyPageView,
+    UserProfileView,
+
 )
 
 router = DefaultRouter()
@@ -24,6 +25,6 @@ urlpatterns = [
     path('naver/login/', NaverLoginView.as_view(), name='api_accounts_naver_oauth'),
     path('custom-routines/', CustomRoutineView.as_view(), name='custom-routines'),
     path('info/', UpdateNicknameView.as_view(), name='update_nickname'),
-    path('mypage/', MyPageView.as_view(), name='my-page'),    
+    path('mypage/', UserProfileView.as_view(), name='user-profile'),
     path('', include(router.urls)),
 ]
