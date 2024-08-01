@@ -65,7 +65,7 @@ class CalendarViewSet(viewsets.ViewSet):
                 })
 
             elif request.method == 'POST':
-                if MonthlyTitle.objects.filter(user=user, month=month_date).exists():
+                if MonthlyTitle.objects.filter(user=user, month__year=year, month__month=month).exists():
                     return Response({'error': 'MonthlyTitle for this month already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
                 serializer = MonthlyTitleSerializer(data=request.data)
