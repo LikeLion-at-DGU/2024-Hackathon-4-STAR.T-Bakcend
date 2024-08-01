@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Celeb
 from rank.models import CelebScore
+from routine.serializers import RoutineSerializer
 
 class CelebScoreSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,10 +10,15 @@ class CelebScoreSerializer(serializers.ModelSerializer):
 
 class CelebSerializer(serializers.ModelSerializer):
     scores = serializers.SerializerMethodField()
-
+    routines = serializers.SerializerMethodField()
+    
     class Meta:
         model = Celeb
         fields = '__all__'
+
+    def get_routines(self, obj):
+        routines = obj.routines.all()
+        return RoutineSerializer(routines, many=True).data
 
     def get_scores(self, obj):
         user = self.context['request'].user
