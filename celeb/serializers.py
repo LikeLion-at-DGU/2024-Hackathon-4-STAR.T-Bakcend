@@ -19,10 +19,10 @@ class CelebSerializer(serializers.ModelSerializer):
 
     def get_routines(self, obj):
         # routines = obj.routines.all()
-        routines = Routine.objects.filter(celeb=obj)
+        routines = Routine.objects.filter(celebrity=obj)
         return RoutineSerializer(routines, many=True).data
 
     def get_scores(self, obj):
         user = self.context['request'].user
-        scores = CelebScore.objects.filter(celeb=obj, user=user)
+        scores = CelebScore.objects.filter(celebrity=obj, user=user)
         return CelebScoreSerializer(scores, many=True).data
