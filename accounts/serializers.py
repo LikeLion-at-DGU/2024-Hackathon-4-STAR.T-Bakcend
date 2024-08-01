@@ -23,5 +23,7 @@ class CustomRoutineSerializer(serializers.Serializer):
         return value
     
 
-class NicknameSerializer(serializers.Serializer):
-    nickname = serializers.CharField(max_length=30)
+class NicknameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['nickname']
