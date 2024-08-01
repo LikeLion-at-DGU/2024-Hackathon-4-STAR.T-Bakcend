@@ -8,7 +8,7 @@ from accounts.views import (
     UserViewSet,
     CustomRoutineView,
     UpdateNicknameView,
-    MypageVieSet,
+    MypageViewSet,
 )
 
 router = DefaultRouter()
