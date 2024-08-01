@@ -198,12 +198,12 @@ class MypageViewSet(viewsets.ViewSet):
 
     def list(self, request):
         user = request.user
-        nickanme_serializer =NicknameSerializer(user)
+        nickname = user.nickname
         
         celeb_scores = CelebScore.objects.filter(user=user).order_by('-score')[:3]
         celeb_score_serializer = CelebScoreSerializer(celeb_scores, many=True)
         
         return Response({
-            'nickname' : nickanme_serializer.data['nickname'],
+            'nickname' : nickname,
             "celebs": celeb_score_serializer.data
         })
