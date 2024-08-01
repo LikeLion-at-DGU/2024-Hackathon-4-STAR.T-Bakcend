@@ -8,23 +8,22 @@ from datetime import date
 class UserRoutineSerializer(serializers.ModelSerializer):
     routine_title = serializers.CharField(source='routine.title')
     routine_content = serializers.CharField(source='routine.content')
-    completed = serializers.SerializerMethodField()  # 완료 여부를 추가하는 필드
+    completed = serializers.SerializerMethodField()
+    popular = serializers.IntegerField(source='routine.popular', read_only=True) 
 
     class Meta:
         model = UserRoutine
-        fields = '__all__'  # 모든 필드를 포함하지만, completed는 get_completed 메서드로 설정
+        fields = '__all__' 
 
     def get_completed(self, obj):
         user = self.context['request'].user
         
-        # 루틴의 완료 여부를 확인
         completions = UserRoutineCompletion.objects.filter(
             user=user,
             routine=obj,
             completed=True
         )
         
-        # 루틴의 기간에 대한 완료 여부 확인
         for completion in completions:
             if completion.date == self.context.get('selected_date'):
                 return True

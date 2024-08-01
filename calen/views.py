@@ -188,7 +188,7 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
 
         try:
-            routine = Routine.objects.get(id=id)  # 여기서 Routine을 가져옵니다.
+            routine = Routine.objects.get(id=id)
         except Routine.DoesNotExist:
             return Response({'error': 'Routine not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -219,6 +219,9 @@ class CalendarViewSet(viewsets.ViewSet):
             end_date=end_date
         )
 
-        # 시리얼라이저에 컨텍스트를 전달합니다.
+        routine.popular += 1
+        routine.save()
+
+        # 시리얼라이저에 컨텍스트를 전달
         serializer = UserRoutineSerializer(user_routine, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
