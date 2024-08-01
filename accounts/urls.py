@@ -8,14 +8,14 @@ from accounts.views import (
     UserViewSet,
     CustomRoutineView,
     UpdateNicknameView,
-    MypageViewSet,
+    MyPageView,
 )
 
 router = DefaultRouter()
 router.register(r'user', UserViewSet, basename='user')
 
 mypage_router = DefaultRouter()
-mypage_router.register(r'mypage', MypageViewSet, basename='mypage')
+mypage_router.register(r'mypage', MyPageView, basename='mypage')
 
 urlpatterns = [
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
