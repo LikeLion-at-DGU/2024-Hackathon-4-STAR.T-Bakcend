@@ -12,8 +12,8 @@ class Routine(models.Model):
     sub_title = models.CharField(max_length=200)
     content = models.TextField()
     category = models.ManyToManyField(RoutineCategory)
-    image = models.URLField(null=True, blank=True)
-    video_url = models.URLField(null=True, blank=True)
+    image = models.URLField(null=True, blank=True,default='https://cdn.pixabay.com/photo/2020/08/22/12/36/yoga-5508336_1280.png')
+    video_url = models.URLField(null=True, blank=True,default='https://cdn.pixabay.com/photo/2020/08/22/12/36/yoga-5508336_1280.png')
     theme = models.ManyToManyField('search.Theme')  # use ManyToManyField
     popular =models.IntegerField(default=0)
     create_at = models.DateField(null = True)

@@ -20,6 +20,8 @@ from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from .serializers import CustomRoutineSerializer,UserSerializer,NicknameSerializer
 from .models import User
+from rank.models import CelebScore
+from rank.serializers import CelebScoreSerializer
 from routine.serializers import RoutineCategorySerializer
 
 
@@ -189,4 +191,17 @@ class UpdateNicknameView(APIView):
             user.save()
             return Response({"status": 200, "message": "정상적으로 등록되었습니다."}, status=status.HTTP_200_OK)
         
-        return Response({"status": 400, "message": "닉네임을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)  
+        return Response({"status": 400, "message": "닉네임을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MypageViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        
+        celeb_scores = CelebScore.objects.filter(user=request.user).order_by('-score')[:3]
+        celeb_score_serializer = CelebScoreSerializer(celeb_scores, many=True)
+        
+        return Response({
+            "celebs": celeb_score_serializer.data
+        })
