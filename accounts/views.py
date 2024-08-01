@@ -194,13 +194,14 @@ class UpdateNicknameView(APIView):
 
 
 class MypageViewSet(viewsets.ViewSet):
-    permission_classes = [AllowAny]
+    #permission_classes = [IsAuthenticated]
 
     def list(self, request):
-
-        celeb_scores = CelebScore.objects.filter(user=request.user).order_by('-score')[:3]
-        celeb_score_serializer = CelebScoreSerializer(celeb_scores, many=True)
-
-        return Response({
-            "celebs": celeb_score_serializer.data
-        })
+        try:
+            celeb_scores = CelebScore.objects.filter(user=request.user).order_by('-score')[:3]
+            celeb_score_serializer = CelebScoreSerializer(celeb_scores, many=True)
+            return Response({"celebs": celeb_score_serializer.data})
+        except KeyError as e:
+            return Response({"detail": f"KeyError: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"detail": f"Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
