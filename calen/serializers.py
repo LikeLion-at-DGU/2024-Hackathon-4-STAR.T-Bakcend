@@ -17,7 +17,7 @@ class UserRoutineSerializer(serializers.ModelSerializer):
     def get_completed(self, obj):
         user = self.context['request'].user
         
-        # 루틴의 완료 여부를 확인합니다
+        # 루틴의 완료 여부를 확인
         completions = UserRoutineCompletion.objects.filter(
             user=user,
             routine=obj,
