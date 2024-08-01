@@ -194,7 +194,7 @@ class UpdateNicknameView(APIView):
 
 
 class MypageViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def list(self, request):
 
