@@ -193,27 +193,14 @@ class UpdateNicknameView(APIView):
         return Response({"status": 400, "message": "닉네임을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MypageView(APIView):
+class MypageViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        try:
-            print(f"Request: {request}")  # 로그 추가
-            print(f"User: {request.user}")  # 로그 추가
-            user = request.user
+    def list(self, request):
 
-            # user 객체에 nickname 필드가 있는지 확인
-            nickname = getattr(user, 'nickname', None)
-            if not nickname:
-                return Response({'error': 'User does not have a nickname.'}, status=400)
-            
-            celeb_scores = CelebScore.objects.filter(user=user).order_by('-score')[:3]
-            celeb_score_serializer = CelebScoreSerializer(celeb_scores, many=True)
-            
-            return Response({
-                'nickname': nickname,
-                'celebs': celeb_score_serializer.data
-            })
-        except Exception as e:
-            print(f"Error: {e}")  # 에러 로그 추가
-            return Response({'error': str(e)}, status=500)
+        celeb_scores = CelebScore.objects.filter(user=request.user).order_by('-score')[:3]
+        celeb_score_serializer = CelebScoreSerializer(celeb_scores, many=True)
+
+        return Response({
+            "celebs": celeb_score_serializer.data
+        })

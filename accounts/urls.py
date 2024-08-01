@@ -8,12 +8,14 @@ from accounts.views import (
     UserViewSet,
     CustomRoutineView,
     UpdateNicknameView,
-    MypageView,
+    MypageVieSet,
 )
 
 router = DefaultRouter()
 router.register(r'user', UserViewSet, basename='user')
 
+mypage_router = DefaultRouter()
+mypage_router.register(r'mypage', MypageViewSet, basename='mypage')
 
 urlpatterns = [
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
@@ -24,6 +26,6 @@ urlpatterns = [
     path('naver/login/', NaverLoginView.as_view(), name='api_accounts_naver_oauth'),
     path('custom-routines/', CustomRoutineView.as_view(), name='custom-routines'),
     path('info/', UpdateNicknameView.as_view(), name='update_nickname'),
-    path('mypage/', MypageView.as_view(),name = 'mypage'),
+    path('',include(mypage_router.urls)),    
     path('', include(router.urls)),
 ]
