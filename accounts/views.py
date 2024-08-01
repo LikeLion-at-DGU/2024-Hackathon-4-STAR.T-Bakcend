@@ -15,13 +15,14 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets,generics
 from rest_framework.views import APIView
 from .serializers import CustomRoutineSerializer,UserSerializer,NicknameSerializer
 from .models import User
 from rank.models import CelebScore
 from rank.serializers import CelebScoreSerializer
 from routine.serializers import RoutineCategorySerializer
+
 
 
 class GoogleLoginView(SocialLoginView):
@@ -193,41 +194,26 @@ class UpdateNicknameView(APIView):
         return Response({"status": 400, "message": "닉네임을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MyPageView(APIView):
-    permission_classes = [AllowAny]  # 모두 허용
+class MyPageView(generics.RetrieveUpdateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = NicknameSerializer
 
-    def get(self, request):
-        try:
-            user = request.user
+    def get_object(self):
+        return self.request.user
 
-            # 사용자의 닉네임
-            nickname_serializer = NicknameSerializer(instance=user)
-            nickname_data = nickname_serializer.data.get('nickname', 'No nickname available')
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        nickname_serializer = self.get_serializer(user)
 
-            # 사용자가 좋아하는 셀럽과 점수 가져오기 (상위 3개)
-            celeb_scores = CelebScore.objects.filter(user=user).select_related('celeb').order_by('-score')[:3]
-            celeb_data = CelebScoreSerializer(celeb_scores, many=True).data
+        # 상위 3개의 셀럽 점수 가져오기
+        celeb_scores = CelebScore.objects.filter(user=user).select_related('celeb').order_by('-score')[:3]
+        celeb_data = CelebScoreSerializer(celeb_scores, many=True).data
 
-            # 응답 데이터 구성
-            data = {
-                "nickname": nickname_data,
-                "celebs": celeb_data
-            }
+        response_data = {
+            'nickname': nickname_serializer.data.get('nickname', 'No nickname available'),
+            'celebs': celeb_data
+        }
+        return Response(response_data)
 
-            return Response(data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def patch(self, request):
-        try:
-            user = request.user
-            serializer = NicknameSerializer(user, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response({"detail": "Nickname updated successfully"}, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
