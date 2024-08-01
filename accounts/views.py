@@ -1,4 +1,3 @@
-# accounts/views.py
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.naver.views import NaverOAuth2Adapter
