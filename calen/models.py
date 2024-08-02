@@ -9,6 +9,13 @@ class UserRoutine(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
 
+    def save(self, *args, **kwargs):
+        if self.pk is None:  # 인스턴스가 새로 생성되는 경우
+            self.routine.popular += 1
+            self.routine.save()
+        super().save(*args, **kwargs)
+
+
 class UserRoutineCompletion(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=1)
     routine = models.ForeignKey(UserRoutine, on_delete=models.CASCADE, related_name='completions')
