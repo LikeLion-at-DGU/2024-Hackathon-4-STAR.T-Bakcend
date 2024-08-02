@@ -227,7 +227,7 @@ class CalendarViewSet(viewsets.ViewSet):
         # return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         response_data = {
-        'id': user_routine.id,
+        'id': routine.id,
         'status': status.HTTP_201_CREATED
     }
 
