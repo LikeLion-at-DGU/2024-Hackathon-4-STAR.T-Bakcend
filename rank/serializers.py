@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import CelebScore
-from celeb.serializers import CelebSerializer
+from celeb.serializers import CelebSerializer,MypageCelebSerializer
 
 
 class CelebScoreSerializer(serializers.ModelSerializer):
@@ -8,3 +8,6 @@ class CelebScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = CelebScore
         fields = ['id','score','celeb']
+
+class MypageSocreSerizalizer(serializers.ModelSerializer):
+    celeb = MypageCelebSerializer()
