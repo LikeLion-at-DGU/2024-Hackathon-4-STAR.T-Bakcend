@@ -26,8 +26,8 @@ class CelebSerializer(serializers.ModelSerializer):
             return {'user_count': 0, 'total_count': 0}
         
         user = request.user
-        # 사용자가 수행한 루틴 수
-        user_routines_count = UserRoutine.objects.filter(routine__celeb=obj, user=user).count()
+        # 수정된 부분: UserRoutine에서 routine__celebrity를 참조하도록 변경
+        user_routines_count = UserRoutine.objects.filter(routine__celebrity=obj, user=user).count()
         # 총 루틴 수
         total_routines_count = Routine.objects.filter(celebrity=obj).count()
         
@@ -43,9 +43,9 @@ class CelebSerializer(serializers.ModelSerializer):
         
         user = request.user
 
-        # 사용자가 추가한 후 완료된 루틴 횟수
+        # 수정된 부분: UserRoutine에서 routine__celebrity를 참조하도록 변경
         routines_added_count = UserRoutine.objects.filter(
-            routine__celeb=obj,
+            routine__celebrity=obj,
             user=user,
             userroutinecompletion__completed=True,
         ).distinct().count()
@@ -62,5 +62,6 @@ class CelebSerializer(serializers.ModelSerializer):
         return CelebScoreSerializer(scores, many=True).data
 
     def get_routines(self, obj):
+        # Routine에서 celebrity 필드를 참조하여 필터링
         routines = Routine.objects.filter(celebrity=obj)
         return RoutineSerializer(routines, many=True).data
