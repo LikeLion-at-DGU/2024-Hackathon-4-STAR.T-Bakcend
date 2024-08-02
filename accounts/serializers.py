@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'is_new_user']
+        fields = ['id', 'email', 'is_new_user', 'nickname']
 
     def get_is_new_user(self, obj):
         return obj.is_new_user()
