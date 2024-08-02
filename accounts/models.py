@@ -50,4 +50,4 @@ class User(AbstractUser):
         return self.email
     
     def is_new_user(self):
-        return not self.preferred_routine_categories.exists()
+        return not (self.preferred_routine_categories.exists() and self.nickname)
