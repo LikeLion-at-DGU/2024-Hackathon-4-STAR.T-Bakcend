@@ -11,7 +11,7 @@ from calen.models import UserRoutine, UserRoutineCompletion
 #         fields = ['celeb', 'score', 'completed']
 
 class CelebSerializer(serializers.ModelSerializer):
-    scores = serializers.SerializerMethodField()
+    # scores = serializers.SerializerMethodField()
     routines = serializers.SerializerMethodField()
     routines_count = serializers.SerializerMethodField()
     routines_added_count = serializers.SerializerMethodField()
