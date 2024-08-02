@@ -9,5 +9,8 @@ class CelebScoreSerializer(serializers.ModelSerializer):
         model = CelebScore
         fields = ['id','score','celeb']
 
-class MypageSocreSerizalizer(serializers.ModelSerializer):
-    celeb = MypageCelebSerializer()
+# class MypageSocreSerizalizer(serializers.ModelSerializer):
+#     celeb = MypageCelebSerializer()
+#     class Meta:
+#         model = CelebScore
+#         fields = ['score','celeb']
