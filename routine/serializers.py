@@ -26,4 +26,4 @@ class RoutineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Routine
-        fields = ['id', 'title', 'sub_title', 'content', 'image', 'video_url', 'category', 'celebrity', 'theme']
+        fields = ['id', 'title', 'sub_title', 'content', 'image', 'video_url', 'category', 'celebrity', 'theme', 'popular']
