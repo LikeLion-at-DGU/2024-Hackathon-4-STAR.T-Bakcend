@@ -24,7 +24,7 @@ class User(AbstractUser):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     preferred_routine_categories = models.ManyToManyField(RoutineCategory, blank=True)
-    nickname = models.CharField(max_length=30, null=False, default='아코')
+    nickname = models.CharField(max_length=30, null=False, blank=True)
 
     groups = models.ManyToManyField(
         Group,
