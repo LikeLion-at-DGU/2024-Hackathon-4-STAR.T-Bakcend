@@ -27,7 +27,7 @@ class CelebSerializer(serializers.ModelSerializer):
         
         user = request.user
         # 수정된 부분: UserRoutine에서 routine__celebrity를 참조하도록 변경
-        user_routines_count = UserRoutine.objects.filter(routine__celebrity=obj, user=user).values_list('routine_id', flat=True).distinct
+        user_routines_count = UserRoutine.objects.filter(routine__celebrity=obj, user=user).values_list('routine_id', flat=True).distinct()
         # 총 루틴 수
         total_routines_count = Routine.objects.filter(celebrity=obj).count()
         
