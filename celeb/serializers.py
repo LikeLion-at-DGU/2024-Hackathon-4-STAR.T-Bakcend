@@ -73,15 +73,22 @@ class MypageCelebSerializer(serializers.ModelSerializer):
     class Meta:
         model = Celeb
         fields = ['id', 'name', 'profession', 'photo', 'routines_added_count']
-    
-    def get_routines_added_count(self, celeb, user):
+
+    def get_routines_added_count(self, obj):
+        request = self.context.get('request', None)
+        if request is None or not request.user.is_authenticated:
+            return 0
+        
+        user = request.user
+
+        # 수정된 부분: UserRoutine에서 routine__celebrity를 참조하도록 변경
         routines_added_count = UserRoutine.objects.filter(
-            routine__celebrity=celeb,
+            routine__celebrity=obj,
             user=user,
             completions__completed=True,
         ).distinct().count()
+        
         return routines_added_count
-
 
     
 
