@@ -65,3 +65,23 @@ class CelebSerializer(serializers.ModelSerializer):
         # Routine에서 celebrity 필드를 참조하여 필터링
         routines = Routine.objects.filter(celebrity=obj)
         return RoutineSerializer(routines, many=True).data
+
+
+class MypageCelebSerializer(serializers.ModelSerializer):
+    routines_added_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Celeb
+        fields = ['id', 'name', 'profession', 'photo', 'routines_added_count']
+    
+    def get_routines_added_count(self, celeb, user):
+        routines_added_count = UserRoutine.objects.filter(
+            routine__celebrity=celeb,
+            user=user,
+            completions__completed=True,
+        ).distinct().count()
+        return routines_added_count
+
+
+    
+
