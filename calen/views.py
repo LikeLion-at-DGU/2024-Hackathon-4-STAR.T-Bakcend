@@ -219,8 +219,8 @@ class CalendarViewSet(viewsets.ViewSet):
             end_date=end_date
         )
 
-        routine.popular += 1
-        routine.save()
+        # routine.popular += 1
+        # routine.save()
 
         # 시리얼라이저에 컨텍스트를 전달
         serializer = UserRoutineSerializer(user_routine, context={'request': request})
