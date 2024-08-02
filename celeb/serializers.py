@@ -47,7 +47,7 @@ class CelebSerializer(serializers.ModelSerializer):
         routines_added_count = UserRoutine.objects.filter(
             routine__celebrity=obj,
             user=user,
-            userroutinecompletion__completed=True,
+            completions__completed=True,
         ).distinct().count()
         
         return routines_added_count
