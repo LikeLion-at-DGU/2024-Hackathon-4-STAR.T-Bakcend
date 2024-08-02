@@ -222,6 +222,13 @@ class CalendarViewSet(viewsets.ViewSet):
         # routine.popular += 1
         # routine.save()
 
-        # 시리얼라이저에 컨텍스트를 전달
-        serializer = UserRoutineSerializer(user_routine, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # 반환 데이터 수정 전
+        # serializer = UserRoutineSerializer(user_routine, context={'request': request})
+        # return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        response_data = {
+        'id': user_routine.id,
+        'status': status.HTTP_201_CREATED
+    }
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
