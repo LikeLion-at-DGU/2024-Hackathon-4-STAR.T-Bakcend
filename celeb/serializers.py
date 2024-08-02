@@ -5,13 +5,13 @@ from routine.serializers import RoutineSerializer
 from routine.models import Routine
 from calen.models import UserRoutine, UserRoutineCompletion
 
-# class CelebScoreSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = CelebScore
-#         fields = ['celeb', 'score', 'completed']
+class CelebScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CelebScore
+        fields = ['celeb', 'score', 'completed']
 
 class CelebSerializer(serializers.ModelSerializer):
-    # scores = serializers.SerializerMethodField()
+    scores = serializers.SerializerMethodField()
     routines = serializers.SerializerMethodField()
     routines_count = serializers.SerializerMethodField()
     routines_added_count = serializers.SerializerMethodField()
@@ -42,7 +42,6 @@ class CelebSerializer(serializers.ModelSerializer):
             return 0
         
         user = request.user
-        selected_date = self.context.get('selected_date')  # 선택된 날짜를 가져옵니다.
 
         # 사용자가 추가한 후 완료된 루틴 횟수
         routines_added_count = UserRoutine.objects.filter(
@@ -53,11 +52,15 @@ class CelebSerializer(serializers.ModelSerializer):
         
         return routines_added_count
 
-    # def get_scores(self, obj):
-    #     request = self.context.get('request', None)
-    #     if request is None or not request.user.is_authenticated:
-    #         return []
+    def get_scores(self, obj):
+        request = self.context.get('request', None)
+        if request is None or not request.user.is_authenticated:
+            return []
         
-    #     user = request.user
-    #     scores = CelebScore.objects.filter(celeb=obj, user=user)
-    #     return CelebScoreSerializer(scores, many=True).data
+        user = request.user
+        scores = CelebScore.objects.filter(celeb=obj, user=user)
+        return CelebScoreSerializer(scores, many=True).data
+
+    def get_routines(self, obj):
+        routines = Routine.objects.filter(celebrity=obj)
+        return RoutineSerializer(routines, many=True).data
