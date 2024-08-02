@@ -46,20 +46,18 @@ class CelebSerializer(serializers.ModelSerializer):
         user = request.user
 
         user_routines = UserRoutine.objects.filter(
-            routine__celebbrity = obj,
+            routine__celebrity=obj,
             user=user,
         )
 
         routines_added_count = 0
 
         for user_routine in user_routines:
-            # 루틴의 시작일과 종료일 사이의 모든 날짜를 구함
             routine_dates = [user_routine.start_date + timedelta(days=i) for i in range((user_routine.end_date - user_routine.start_date).days + 1)]
             
-            # 모든 날짜가 완료되었는지 확인
             completed_dates = UserRoutineCompletion.objects.filter(
                 user=user,
-                routine=user_routine.routine,
+                routine=user_routine,
                 date__in=routine_dates,
                 completed=True
             ).values_list('date', flat=True)
