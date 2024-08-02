@@ -6,6 +6,8 @@ from search.serializers import ThemeSerializer
 from .models import Routine , RoutineCategory
 from search.models import Theme
 from rest_framework.decorators import action
+from calen.models import UserRoutine
+from calen.serializers import UserRoutineSerializer
 
 class RoutineViewSet(viewsets.ModelViewSet):
     queryset = Routine.objects.all()
@@ -43,6 +45,21 @@ class MainPageViewSet(viewsets.ViewSet):
         hot_routines = Routine.objects.order_by('-popular')[:10]
         latest_routines = Routine.objects.order_by('-create_at')[:10]
         themes = Theme.objects.all()
+        challenges = UserRoutine.objects.filter(user=user)
+
+        challenge_data = []
+        for challenge in challenges:
+            routine = challenge.routine
+            routine_data = {
+                "id": routine.id,
+                "title": routine.title,
+                "celeb_name": routine.celebrity.name,
+                "image": routine.image.url,  # 이미지 URL로 가정
+                "url": routine.celebrity.id,  # Celeb 페이지 URL로 가정
+                "start_date": challenge.start_date,
+                "end_date": challenge.end_date
+            }
+            challenge_data.append(routine_data)
 
         theme_data = []
         for theme in themes:
@@ -80,6 +97,7 @@ class MainPageViewSet(viewsets.ViewSet):
 
         return Response({
             "theme": theme_data,
+            "challenge" : challenge_data,
             "new_update": new_update_data,
             "user_routine": user_routine_data,
             "hot_routine": hot_routine_data,
