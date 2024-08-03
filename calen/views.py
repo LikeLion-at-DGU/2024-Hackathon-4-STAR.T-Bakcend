@@ -22,6 +22,80 @@ class CalendarViewSet(viewsets.ViewSet):
             return None
         return user
     
+    # @action(detail=False, methods=['get', 'post', 'patch'])
+    # def monthly(self, request, month=None):
+    #     user = self.get_user(request)
+
+    #     if user is None:
+    #         return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
+
+    #     if not month:
+    #         return Response({'error': 'Month parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     try:
+    #         # 요청된 월을 파싱하여 년과 월을 추출
+    #         month_date = parse_date(month + "-01")
+    #         if month_date is None:
+    #             raise ValueError("Invalid month format")
+
+    #         year = month_date.year
+    #         month = month_date.month
+
+    #         if request.method == 'GET':
+    #             completed_routines = UserRoutineCompletion.objects.filter(
+    #                 user=user,
+    #                 date__year=year,
+    #                 date__month=month,
+    #                 completed=True
+    #             )
+
+    #             # completed_days 리스트 생성
+    #             completed_days = set()
+
+    #             for routine_completion in completed_routines:
+    #                 completed_days.add(routine_completion.date)
+
+    #             monthly_title = MonthlyTitle.objects.filter(
+    #                 user=user,
+    #                 month__year=year,
+    #                 month__month=month
+    #             )            
+
+    #             return Response({
+    #                 'completed_days': [day.strftime('%Y-%m-%d') for day in sorted(completed_days)],
+    #                 'monthly_title': MonthlyTitleSerializer(monthly_title, many=True).data
+    #             })
+
+    #         elif request.method == 'POST':
+    #             if MonthlyTitle.objects.filter(user=user, month__year=year, month__month=month).exists():
+    #                 return Response({'error': 'MonthlyTitle for this month already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #             serializer = MonthlyTitleSerializer(data=request.data)
+    #             if serializer.is_valid():
+    #                 serializer.save(user=user, month=month_date)
+    #                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+    #         elif request.method == 'PATCH':
+    #             title_id = request.data.get('id')
+    #             if not title_id:
+    #                 return Response({'error': 'ID parameter is required for update'}, status=status.HTTP_400_BAD_REQUEST)
+                
+    #             try:
+    #                 monthly_title = MonthlyTitle.objects.get(id=title_id, user=user, month__year=year, month__month=month)
+    #             except MonthlyTitle.DoesNotExist:
+    #                 return Response({'error': 'MonthlyTitle not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    #             serializer = MonthlyTitleSerializer(monthly_title, data=request.data, partial=True)
+    #             if serializer.is_valid():
+    #                 serializer.save()
+    #                 return Response(serializer.data, status=status.HTTP_200_OK)
+    #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        
+    #     except ValueError as e:
+    #         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=False, methods=['get', 'post', 'patch'])
     def monthly(self, request, month=None):
         user = self.get_user(request)
@@ -42,18 +116,33 @@ class CalendarViewSet(viewsets.ViewSet):
             month = month_date.month
 
             if request.method == 'GET':
-                completed_routines = UserRoutineCompletion.objects.filter(
-                    user=user,
-                    date__year=year,
-                    date__month=month,
-                    completed=True
-                )
-
-                # completed_days 리스트 생성
                 completed_days = set()
+                
+                # 해당 월의 모든 날짜를 순회
+                first_day = date(year, month, 1)
+                last_day = (first_day + timedelta(days=31)).replace(day=1) - timedelta(days=1)
 
-                for routine_completion in completed_routines:
-                    completed_days.add(routine_completion.date)
+                current_date = first_day
+                while current_date <= last_day:
+                    # 해당 날짜의 모든 루틴을 가져옴
+                    user_routines = UserRoutine.objects.filter(
+                        user=user,
+                        start_date__lte=current_date,
+                        end_date__gte=current_date
+                    )
+
+                    # 모든 루틴이 완료되었는지 확인
+                    all_completed = all(UserRoutineCompletion.objects.filter(
+                        user=user,
+                        routine=user_routine,
+                        date=current_date,
+                        completed=True
+                    ).exists() for user_routine in user_routines)
+
+                    if all_completed:
+                        completed_days.add(current_date)
+
+                    current_date += timedelta(days=1)
 
                 monthly_title = MonthlyTitle.objects.filter(
                     user=user,
