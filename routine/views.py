@@ -54,7 +54,7 @@ class MainPageViewSet(viewsets.ViewSet):
                 "id": routine.id,
                 "title": routine.title,
                 "celeb_name": routine.celebrity.name,
-                "image": routine.image.url,  # 이미지 URL로 가정
+                "image": routine.image,  # 이미지 URL로 가정
                 "url": routine.celebrity.id,  # Celeb 페이지 URL로 가정
                 "start_date": challenge.start_date,
                 "end_date": challenge.end_date

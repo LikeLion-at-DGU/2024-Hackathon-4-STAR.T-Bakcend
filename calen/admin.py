@@ -1,9 +1,26 @@
 from django.contrib import admin
-from .models import UserRoutine, PersonalSchedule, MonthlyTitle, UserRoutineCompletion
+from .models import UserRoutine, UserRoutineCompletion, PersonalSchedule, MonthlyTitle
 
-# Register your models here.
+class UserRoutineAdmin(admin.ModelAdmin):
+    search_fields = ['user__email', 'user__username', 'routine__title']
+    list_display = ['user', 'routine', 'start_date', 'end_date']
 
-admin.site.register(UserRoutine)
-admin.site.register(PersonalSchedule)
-admin.site.register(MonthlyTitle)
-admin.site.register(UserRoutineCompletion)
+admin.site.register(UserRoutine, UserRoutineAdmin)
+
+class UserRoutineCompletionAdmin(admin.ModelAdmin):
+    search_fields = ['user__email', 'routine__routine__title']
+    list_display = ['user', 'routine', 'date', 'completed']
+
+admin.site.register(UserRoutineCompletion, UserRoutineCompletionAdmin)
+
+class PersonalScheduleAdmin(admin.ModelAdmin):
+    search_fields = ['user__email', 'title', 'description']
+    list_display = ['user', 'title', 'description', 'date', 'completed']
+
+admin.site.register(PersonalSchedule, PersonalScheduleAdmin)
+
+class MonthlyTitleAdmin(admin.ModelAdmin):
+    search_fields = ['user__email', 'month', 'title']
+    list_display = ['user', 'month', 'title']
+
+admin.site.register(MonthlyTitle, MonthlyTitleAdmin)
