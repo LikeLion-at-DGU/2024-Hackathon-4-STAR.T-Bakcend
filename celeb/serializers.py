@@ -10,7 +10,7 @@ from datetime import timedelta
 class CelebScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = CelebScore
-        fields = ['celeb', 'score']
+        fields = '__all__'
 
 class CelebSerializer(serializers.ModelSerializer):
     scores = serializers.SerializerMethodField()
