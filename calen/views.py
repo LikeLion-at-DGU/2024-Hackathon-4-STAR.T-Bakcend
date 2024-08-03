@@ -357,46 +357,46 @@ class CalendarViewSet(viewsets.ViewSet):
 
         return Response({'check_star': all_completed}, status=status.HTTP_200_OK)
 
-    # 루틴 complete 업데이트
-    @action(detail=False, methods=['patch'])
-    def update_routine(self, request, date=None):
-        user = self.get_user(request)
+    # # 루틴 complete 업데이트
+    # @action(detail=False, methods=['patch'])
+    # def update_routine(self, request, date=None):
+    #     user = self.get_user(request)
 
-        if user is None:
-            return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
+    #     if user is None:
+    #         return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
 
-        if not date:
-            return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+    #     if not date:
+    #         return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            selected_date = parse_date(date)
-            if selected_date is None:
-                raise ValueError("Invalid date format")
-        except ValueError:
-            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+    #     try:
+    #         selected_date = parse_date(date)
+    #         if selected_date is None:
+    #             raise ValueError("Invalid date format")
+    #     except ValueError:
+    #         return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
 
-        routines_data = request.data.get('routines', [])
+    #     routines_data = request.data.get('routines', [])
 
-        for routine_data in routines_data:
-            routine_id = routine_data.get('id')
-            completed = routine_data.get('completed')
+    #     for routine_data in routines_data:
+    #         routine_id = routine_data.get('id')
+    #         completed = routine_data.get('completed')
 
-            if routine_id is None or completed is None:
-                return Response({'error': 'Routine ID and completion status are required.'}, status=status.HTTP_400_BAD_REQUEST)
+    #         if routine_id is None or completed is None:
+    #             return Response({'error': 'Routine ID and completion status are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            try:
-                routine = UserRoutine.objects.get(id=routine_id, user=user, start_date__lte=selected_date, end_date__gte=selected_date)
-            except UserRoutine.DoesNotExist:
-                return Response({'error': 'Routine not found or does not belong to the user.'}, status=status.HTTP_404_NOT_FOUND)
+    #         try:
+    #             routine = UserRoutine.objects.get(id=routine_id, user=user, start_date__lte=selected_date, end_date__gte=selected_date)
+    #         except UserRoutine.DoesNotExist:
+    #             return Response({'error': 'Routine not found or does not belong to the user.'}, status=status.HTTP_404_NOT_FOUND)
 
-            UserRoutineCompletion.objects.update_or_create(
-                user=user,
-                routine=routine,
-                date=selected_date,
-                defaults={'completed': completed}
-            )
+    #         UserRoutineCompletion.objects.update_or_create(
+    #             user=user,
+    #             routine=routine,
+    #             date=selected_date,
+    #             defaults={'completed': completed}
+    #         )
 
-        return Response({'status': 'Routines updated successfully'}, status=status.HTTP_200_OK)
+    #     return Response({'status': 'Routines updated successfully'}, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['patch'])
     def update_schedule(self, request, date=None):
@@ -432,3 +432,48 @@ class CalendarViewSet(viewsets.ViewSet):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'status': 'Schedules updated successfully'}, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['patch'])
+    def update_routine(self, request, date=None):
+        user = self.get_user(request)
+
+        if user is None:
+            return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if not date:
+            return Response({'error': 'Date parameter is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            selected_date = parse_date(date)
+            if selected_date is None:
+                raise ValueError("Invalid date format")
+        except ValueError:
+            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        routines_data = request.data.get('routines', [])
+
+        for routine_data in routines_data:
+            routine_id = routine_data.get('id')
+            completed = routine_data.get('completed')
+
+            if routine_id is None or completed is None:
+                return Response({'error': 'Routine ID and completion status are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                routine = UserRoutine.objects.get(id=routine_id, user=user, start_date__lte=selected_date, end_date__gte=selected_date)
+            except UserRoutine.DoesNotExist:
+                return Response({'error': 'Routine not found or does not belong to the user.'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Update or create completion record
+            obj, created = UserRoutineCompletion.objects.update_or_create(
+                user=user,
+                routine=routine,
+                date=selected_date,
+                defaults={'completed': completed}
+            )
+
+            if not created:
+                # Optional: Log or handle the case where the object was updated
+                pass
+
+        return Response({'status': 'Routines updated successfully'}, status=status.HTTP_200_OK)
