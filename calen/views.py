@@ -246,7 +246,7 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            selected_date = parse_date(date_str)
+            selected_date = parse_date(date_str).date()
         except (ValueError, TypeError, OverflowError, ValidationError):
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -255,14 +255,14 @@ class CalendarViewSet(viewsets.ViewSet):
             user=user,
             start_date__lte=selected_date,
             end_date__gte=selected_date
-        ).select_related('routine')
+        )
 
         # 모든 루틴이 완료되었는지 확인
         all_completed = all(UserRoutineCompletion.objects.filter(
             user=user,
-            routine=routine.routine,
+            routine=user_routine,
             date=selected_date,
             completed=True
-        ).exists() for routine in user_routines)
+        ).exists() for user_routine in user_routines)
 
         return Response({'check_star': all_completed}, status=status.HTTP_200_OK)
