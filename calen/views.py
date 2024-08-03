@@ -446,27 +446,51 @@ class CalendarViewSet(viewsets.ViewSet):
 
         return Response({'status': 'Schedules updated successfully'}, status=status.HTTP_200_OK)
 
-class UpdateRoutineCompletionView(APIView):
-    permission_classes = [IsAuthenticated]
+# class UpdateRoutineCompletionView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def patch(self, request, date):
+#     def patch(self, request, date):
+#         try:
+#             user = request.user
+#             date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+#             routine_id = request.data.get('routine_id')
+#             completed = request.data.get('completed')
+
+#             if routine_id is None or completed is None:
+#                 return Response({"detail": "Missing routine_id or completed field."}, status=status.HTTP_400_BAD_REQUEST)
+
+#             try:
+#                 completion = UserRoutineCompletion.objects.get(user=user, routine_id=routine_id, date=date_obj)
+#                 completion.completed = completed
+#                 completion.save()
+#             except UserRoutineCompletion.DoesNotExist:
+#                 return Response({"detail": "UserRoutineCompletion not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+#             return Response({"status": "Routine completion status updated successfully"}, status=status.HTTP_200_OK)
+#         except Exception as e:
+#             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class RoutineCompletionUpdateView(APIView):
+    def patch(self, request, *args, **kwargs):
+        user = request.user
+        routine_id = request.data.get('routine_id')
+        completed = request.data.get('completed')
+        date = request.data.get('date')  # 요청에서 날짜를 받을 필요가 있습니다
+        
+        # 루틴을 찾습니다.
         try:
-            user = request.user
-            date_obj = datetime.strptime(date, '%Y-%m-%d').date()
-            routine_id = request.data.get('routine_id')
-            completed = request.data.get('completed')
-
-            if routine_id is None or completed is None:
-                return Response({"detail": "Missing routine_id or completed field."}, status=status.HTTP_400_BAD_REQUEST)
-
-            try:
-                completion = UserRoutineCompletion.objects.get(user=user, routine_id=routine_id, date=date_obj)
-                completion.completed = completed
-                completion.save()
-            except UserRoutineCompletion.DoesNotExist:
-                return Response({"detail": "UserRoutineCompletion not found."}, status=status.HTTP_404_NOT_FOUND)
-
-            return Response({"status": "Routine completion status updated successfully"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            user_routine = UserRoutine.objects.get(id=routine_id, user=user)
+        except UserRoutine.DoesNotExist:
+            return Response({'detail': 'UserRoutine not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # UserRoutineCompletion 객체를 찾거나 생성합니다.
+        completion, created = UserRoutineCompletion.objects.update_or_create(
+            user=user,
+            routine=user_routine,
+            date=date,
+            defaults={'completed': completed}
+        )
+        
+        serializer = UserRoutineCompletionSerializer(completion)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
