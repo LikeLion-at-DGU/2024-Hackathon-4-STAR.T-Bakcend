@@ -2,6 +2,8 @@ from django.conf import settings
 from django.db import models
 from routine.models import Routine
 from project import settings
+from datetime import timedelta
+
 
 class UserRoutine(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) #AUTH_USER_MODEL에 대한 외래키
@@ -9,11 +11,31 @@ class UserRoutine(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
 
+    # def save(self, *args, **kwargs):
+    #     if self.pk is None:  # 인스턴스가 새로 생성되는 경우
+    #         self.routine.popular += 1
+    #         self.routine.save()
+    #     super().save(*args, **kwargs)
+
     def save(self, *args, **kwargs):
-        if self.pk is None:  # 인스턴스가 새로 생성되는 경우
+        is_new = self.pk is None  # 인스턴스가 새로 생성되는 경우
+        
+        super().save(*args, **kwargs)
+        
+        if is_new:
             self.routine.popular += 1
             self.routine.save()
-        super().save(*args, **kwargs)
+            self.create_routine_completions()
+
+    def create_routine_completions(self):
+        current_date = self.start_date
+        while current_date <= self.end_date:
+            UserRoutineCompletion.objects.get_or_create(
+                user=self.user,
+                routine=self,
+                date=current_date
+            )
+            current_date += timedelta(days=1)
 
 
 class UserRoutineCompletion(models.Model):
