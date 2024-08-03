@@ -262,62 +262,6 @@ class CalendarViewSet(viewsets.ViewSet):
         except ValueError:
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
         
-    # @action(detail=True, methods=['post'])
-    # def add_routine(self, request, id=None):
-    #     user = self.get_user(request)
-
-    #     if user is None:
-    #         return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
-
-    #     try:
-    #         routine = Routine.objects.get(id=id)
-    #     except Routine.DoesNotExist:
-    #         return Response({'error': 'Routine not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    #     start_date_str = request.data.get('start_date')
-    #     end_date_str = request.data.get('end_date')
-
-    #     if not start_date_str or not end_date_str:
-    #         return Response({'error': 'Start date and end date are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     try:
-    #         start_date = parse_date(start_date_str)
-    #         end_date = parse_date(end_date_str)
-    #         if start_date is None or end_date is None:
-    #             raise ValueError("Invalid date format")
-    #     except ValueError:
-    #         return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     if start_date > end_date:
-    #         return Response({'error': 'End date must be after start date.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     if end_date < date.today():
-    #         return Response({'error': 'End date cannot be in the past.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     # 동일한 날짜와 루틴이 이미 존재하는지 확인
-    #     existing_routine = UserRoutine.objects.filter(
-    #         user=user,
-    #         routine=routine,
-    #         start_date=start_date,
-    #         end_date=end_date
-    #     ).exists()
-
-    #     if existing_routine:
-    #         return Response({'error': 'A routine with the same dates already exists for this user.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     user_routine = UserRoutine.objects.create(
-    #         user=user,
-    #         routine=routine,
-    #         start_date=start_date,
-    #         end_date=end_date
-    #     )
-
-    #     response_data = {
-    #     'id': routine.id,
-    #     'status': status.HTTP_201_CREATED
-    # }
-
-    #     return Response(response_data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def add_routine(self, request, id=None):
@@ -469,3 +413,37 @@ class UpdateRoutineCompletionView(APIView):
             return Response({"status": "Routine completion status updated successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UpdateScheduleView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, date):
+        user = request.user
+
+        if not date:
+            return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            selected_date = parse_date(date)
+            if selected_date is None:
+                raise ValueError("Invalid date format")
+        except ValueError:
+            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        schedules_data = request.data.get('schedules', [])
+
+        for schedule_data in schedules_data:
+            schedule_id = schedule_data.get('id')
+            if schedule_id:
+                try:
+                    schedule = PersonalSchedule.objects.get(id=schedule_id, user=user, date=selected_date)
+                except PersonalSchedule.DoesNotExist:
+                    return Response({'error': 'PersonalSchedule not found'}, status=status.HTTP_404_NOT_FOUND)
+
+                serializer = PersonalScheduleSerializer(schedule, data=schedule_data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'status': 'Schedules updated successfully'}, status=status.HTTP_200_OK)
