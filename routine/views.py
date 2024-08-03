@@ -12,7 +12,7 @@ from calen.serializers import UserRoutineSerializer
 class RoutineViewSet(viewsets.ModelViewSet):
     queryset = Routine.objects.all()
     serializer_class = RoutineSerializer
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     @action(methods=['GET'], detail=False)
     def recommend(self, request):
@@ -25,7 +25,7 @@ class RoutineViewSet(viewsets.ModelViewSet):
     
 
 class MainPageViewSet(viewsets.ViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def list(self, request):
         user = request.user
