@@ -13,6 +13,9 @@ from rest_framework.permissions import IsAuthenticated
 from routine.models import Routine
 from django.core.exceptions import ValidationError
 
+from rest_framework.views import APIView
+from datetime import datetime
+
 class CalendarViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
@@ -433,47 +436,27 @@ class CalendarViewSet(viewsets.ViewSet):
 
         return Response({'status': 'Schedules updated successfully'}, status=status.HTTP_200_OK)
     
-    @action(detail=False, methods=['patch'])
-    def update_routine(self, request, date=None):
-        user = self.get_user(request)
+class UpdateRoutineCompletionView(APIView):
+    permission_classes = [IsAuthenticated]
 
-        if user is None:
-            return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
-
-        if not date:
-            return Response({'error': 'Date parameter is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
+    def patch(self, request, date):
         try:
-            selected_date = parse_date(date)
-            if selected_date is None:
-                raise ValueError("Invalid date format")
-        except ValueError:
-            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
-
-        routines_data = request.data.get('routines', [])
-
-        for routine_data in routines_data:
-            routine_id = routine_data.get('id')
-            completed = routine_data.get('completed')
+            user = request.user
+            date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+            routine_id = request.data.get('routine_id')
+            completed = request.data.get('completed')
 
             if routine_id is None or completed is None:
-                return Response({'error': 'Routine ID and completion status are required.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "Missing routine_id or completed field."}, status=status.HTTP_400_BAD_REQUEST)
 
             try:
-                routine = UserRoutine.objects.get(id=routine_id, user=user, start_date__lte=selected_date, end_date__gte=selected_date)
-            except UserRoutine.DoesNotExist:
-                return Response({'error': 'Routine not found or does not belong to the user.'}, status=status.HTTP_404_NOT_FOUND)
+                completion = UserRoutineCompletion.objects.get(user=user, routine_id=routine_id, date=date_obj)
+                completion.completed = completed
+                completion.save()
+            except UserRoutineCompletion.DoesNotExist:
+                return Response({"detail": "UserRoutineCompletion not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Update or create completion record
-            obj, created = UserRoutineCompletion.objects.update_or_create(
-                user=user,
-                routine=routine,
-                date=selected_date,
-                defaults={'completed': completed}
-            )
-
-            if not created:
-                # Optional: Log or handle the case where the object was updated
-                pass
-
-        return Response({'status': 'Routines updated successfully'}, status=status.HTTP_200_OK)
+            serializer = UserRoutineCompletionSerializer(completion)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
