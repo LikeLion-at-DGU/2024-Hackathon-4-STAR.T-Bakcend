@@ -5,10 +5,12 @@ from .models import CelebScore
 from .serializers import CelebScoreSerializer
 from django.shortcuts import get_object_or_404
 from celeb.models import Celeb
+from rest_framework.permissions import IsAuthenticated
 
 class CelebScoreViewSet(viewsets.ModelViewSet):
     queryset = CelebScore.objects.all()
     serializer_class = CelebScoreSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user

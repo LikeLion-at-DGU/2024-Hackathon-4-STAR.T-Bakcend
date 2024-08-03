@@ -67,9 +67,11 @@ SITE_ID = 1
 # 로그인 후 리디렉션할 페이지
 LOGIN_REDIRECT_URL = 'https://likelion-start.site/signup'
 # 로그아웃 후 리디렉션할 페이지
-ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_REDIRECT_URL = 'https://likelion-start.site/login'
 # 로그아웃 버튼 클릭 시 자동 로그아웃
 ACCOUNT_LOGOUT_ON_GET = True
+
+AUTH_USER_MODEL = 'accounts.User'
 
 # allauth backends
 AUTHENTICATION_BACKENDS = (
@@ -81,7 +83,7 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-AUTH_USER_MODEL = 'accounts.User'
+
 
 SOCIALACCOUNT_PROVIDERS = {
     'kakao': {
@@ -236,9 +238,6 @@ REST_AUTH = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
-        # 'dj_rest_auth.jwt_auth.JWTAuthentication', # 디버깅용
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication' # 실 사용 코드
     ],
     '''유저 인증 구현 뒤, 수정할 것'''

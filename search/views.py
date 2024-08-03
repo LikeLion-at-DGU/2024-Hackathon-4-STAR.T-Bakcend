@@ -7,7 +7,7 @@ from routine.models import Routine
 from .serializers import ThemeSerializer, CelebritySerializer, RoutineSerializer
 
 class SearchViewSet(viewsets.ViewSet):
-    #permission_classes = [IsAuthenticated] # 로그인 토큰 받고 다시 활성화
+    permission_classes = [IsAuthenticated] # 로그인 토큰 받고 다시 활성화
     def list(self, request):
         data = request.query_params.get('data', None)
         if not data:
@@ -45,7 +45,7 @@ class SearchViewSet(viewsets.ViewSet):
     
 
 class ThemeDetailViewSet(viewsets.ViewSet):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def retrieve(self, request, pk=None):
         try:
