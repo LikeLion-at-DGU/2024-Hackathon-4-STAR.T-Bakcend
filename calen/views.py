@@ -304,6 +304,17 @@ class CalendarViewSet(viewsets.ViewSet):
         if end_date < date.today():
             return Response({'error': 'End date cannot be in the past.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # 동일한 날짜와 루틴이 이미 존재하는지 확인
+        existing_routine = UserRoutine.objects.filter(
+            user=user,
+            routine=routine,
+            start_date=start_date,
+            end_date=end_date
+        ).exists()
+
+        if existing_routine:
+            return Response({'error': 'A routine with the same dates already exists for this user.'}, status=status.HTTP_400_BAD_REQUEST)
+
         user_routine = UserRoutine.objects.create(
             user=user,
             routine=routine,
