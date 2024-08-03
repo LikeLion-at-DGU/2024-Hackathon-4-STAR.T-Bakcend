@@ -249,21 +249,22 @@ class CalendarViewSet(viewsets.ViewSet):
             if selected_date is None:
                 raise ValueError("Invalid date format")
 
-            routine_ids = [routine['id'] for routine in request.data.get('routines', [])]
-            completed_routines = set(
-                routine['id'] for routine in request.data.get('routines', []) if routine['completed']
-            )
-
+            # 해당 날짜의 모든 루틴을 가져옴
             user_routines = UserRoutine.objects.filter(
                 user=user,
                 start_date__lte=selected_date,
-                end_date__gte=selected_date,
-                routine__id__in=routine_ids
+                end_date__gte=selected_date
             ).select_related('routine')
 
-            star_check = all(routine.routine.id in completed_routines for routine in user_routines)
+            # 모든 루틴이 완료되었는지 확인
+            all_completed = all(UserRoutineCompletion.objects.filter(
+                user=user,
+                routine=routine.routine,
+                date=selected_date,
+                completed=True
+            ).exists() for routine in user_routines)
 
-            return Response({'star_check': star_check}, status=status.HTTP_200_OK)
+            return Response({'check_star': all_completed}, status=status.HTTP_200_OK)
 
         except ValueError:
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
