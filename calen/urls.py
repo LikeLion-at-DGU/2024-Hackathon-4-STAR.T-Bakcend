@@ -11,5 +11,5 @@ urlpatterns = [
     path('calendar/daily/<str:date>/', CalendarViewSet.as_view({'get': 'daily', 'post': 'daily', 'patch': 'daily'}), name='calendar-daily'),
     path('calendar/daily/<str:date>/delete/<int:id>/', CalendarViewSet.as_view({'delete': 'delete_daily'}), name='calendar-daily-personalschedule-delete'),
     path('add_routine/<int:id>/', CalendarViewSet.as_view({'post': 'add_routine'}), name='add-routine'),
-    path('calendar/daily/<str:date>/check_star/', CalendarViewSet.as_view({'post': 'check_star'}), name='check_star'),
+    path('calendar/daily/check_star/', CalendarViewSet.as_view({'post': 'check_star'}), name='check_star'),
 ]

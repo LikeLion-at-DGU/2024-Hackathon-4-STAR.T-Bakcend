@@ -241,36 +241,29 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
 
         date_str = request.data.get('date')
-        routines = request.data.get('routines')
-
-        if not date_str or not routines:
-            return Response({'error': 'Date and routines parameters are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not date_str:
+            return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             selected_date = parse_date(date_str)
             if selected_date is None:
                 raise ValueError("Invalid date format")
+
+            routine_ids = [routine['id'] for routine in request.data.get('routines', [])]
+            completed_routines = set(
+                routine['id'] for routine in request.data.get('routines', []) if routine['completed']
+            )
+
+            user_routines = UserRoutine.objects.filter(
+                user=user,
+                start_date__lte=selected_date,
+                end_date__gte=selected_date,
+                routine__id__in=routine_ids
+            ).select_related('routine')
+
+            star_check = all(routine.routine.id in completed_routines for routine in user_routines)
+
+            return Response({'star_check': star_check}, status=status.HTTP_200_OK)
+
         except ValueError:
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 루틴 ID와 completed 상태를 검토하여 star_check 값을 결정
-        all_completed = True
-
-        for routine in routines:
-            routine_id = routine.get('id')
-            completed = routine.get('completed')
-
-            if routine_id is None or completed is None:
-                return Response({'error': 'Each routine must have an ID and completed status.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            try:
-                user_routine = UserRoutine.objects.get(id=routine_id, user=user, start_date__lte=selected_date, end_date__gte=selected_date)
-            except UserRoutine.DoesNotExist:
-                return Response({'error': f'UserRoutine with ID {routine_id} not found for the given date.'}, status=status.HTTP_404_NOT_FOUND)
-
-            # 루틴이 완료된 상태가 아니면 all_completed를 False로 설정
-            if UserRoutineCompletion.objects.filter(user=user, routine=user_routine, date=selected_date, completed=True).exists() != completed:
-                all_completed = False
-                break
-
-        return Response({'star_check': all_completed}, status=status.HTTP_200_OK)
