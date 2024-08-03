@@ -246,7 +246,7 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            selected_date = parse_date(date_str).date()
+            selected_date = parse_date(date_str)
         except (ValueError, TypeError, OverflowError, ValidationError):
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
 
