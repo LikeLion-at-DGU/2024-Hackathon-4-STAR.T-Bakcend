@@ -470,7 +470,9 @@ class CalendarViewSet(viewsets.ViewSet):
 #         except Exception as e:
 #             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class RoutineCompletionUpdateView(APIView):
+class UpdateRoutineCompletionView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def patch(self, request, *args, **kwargs):
         user = request.user
         routine_id = request.data.get('routine_id')
