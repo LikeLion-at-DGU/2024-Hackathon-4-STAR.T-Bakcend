@@ -262,6 +262,63 @@ class CalendarViewSet(viewsets.ViewSet):
         except ValueError:
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
         
+    # @action(detail=True, methods=['post'])
+    # def add_routine(self, request, id=None):
+    #     user = self.get_user(request)
+
+    #     if user is None:
+    #         return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
+
+    #     try:
+    #         routine = Routine.objects.get(id=id)
+    #     except Routine.DoesNotExist:
+    #         return Response({'error': 'Routine not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    #     start_date_str = request.data.get('start_date')
+    #     end_date_str = request.data.get('end_date')
+
+    #     if not start_date_str or not end_date_str:
+    #         return Response({'error': 'Start date and end date are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     try:
+    #         start_date = parse_date(start_date_str)
+    #         end_date = parse_date(end_date_str)
+    #         if start_date is None or end_date is None:
+    #             raise ValueError("Invalid date format")
+    #     except ValueError:
+    #         return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     if start_date > end_date:
+    #         return Response({'error': 'End date must be after start date.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     if end_date < date.today():
+    #         return Response({'error': 'End date cannot be in the past.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     # 동일한 날짜와 루틴이 이미 존재하는지 확인
+    #     existing_routine = UserRoutine.objects.filter(
+    #         user=user,
+    #         routine=routine,
+    #         start_date=start_date,
+    #         end_date=end_date
+    #     ).exists()
+
+    #     if existing_routine:
+    #         return Response({'error': 'A routine with the same dates already exists for this user.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     user_routine = UserRoutine.objects.create(
+    #         user=user,
+    #         routine=routine,
+    #         start_date=start_date,
+    #         end_date=end_date
+    #     )
+
+    #     response_data = {
+    #     'id': routine.id,
+    #     'status': status.HTTP_201_CREATED
+    # }
+
+    #     return Response(response_data, status=status.HTTP_201_CREATED)
+
     @action(detail=True, methods=['post'])
     def add_routine(self, request, id=None):
         user = self.get_user(request)
@@ -294,16 +351,16 @@ class CalendarViewSet(viewsets.ViewSet):
         if end_date < date.today():
             return Response({'error': 'End date cannot be in the past.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 동일한 날짜와 루틴이 이미 존재하는지 확인
+        # 동일한 날짜에 동일한 루틴이 이미 존재하는지 확인
         existing_routine = UserRoutine.objects.filter(
             user=user,
             routine=routine,
-            start_date=start_date,
-            end_date=end_date
+            start_date__lte=start_date,
+            end_date__gte=start_date
         ).exists()
 
         if existing_routine:
-            return Response({'error': 'A routine with the same dates already exists for this user.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'A routine with the same dates already exists for this user on this date.'}, status=status.HTTP_400_BAD_REQUEST)
 
         user_routine = UserRoutine.objects.create(
             user=user,
@@ -312,19 +369,13 @@ class CalendarViewSet(viewsets.ViewSet):
             end_date=end_date
         )
 
-        # routine.popular += 1
-        # routine.save()
-
-        # 반환 데이터 수정 전
-        # serializer = UserRoutineSerializer(user_routine, context={'request': request})
-        # return Response(serializer.data, status=status.HTTP_201_CREATED)
-
         response_data = {
-        'id': routine.id,
-        'status': status.HTTP_201_CREATED
-    }
+            'id': routine.id,
+            'status': status.HTTP_201_CREATED
+        }
 
         return Response(response_data, status=status.HTTP_201_CREATED)
+
 
     @action(detail=False, methods=['get'])
     def check_star(self, request, date=None):
@@ -359,47 +410,6 @@ class CalendarViewSet(viewsets.ViewSet):
         ).exists() for user_routine in user_routines)
 
         return Response({'check_star': all_completed}, status=status.HTTP_200_OK)
-
-    # # 루틴 complete 업데이트
-    # @action(detail=False, methods=['patch'])
-    # def update_routine(self, request, date=None):
-    #     user = self.get_user(request)
-
-    #     if user is None:
-    #         return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
-
-    #     if not date:
-    #         return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     try:
-    #         selected_date = parse_date(date)
-    #         if selected_date is None:
-    #             raise ValueError("Invalid date format")
-    #     except ValueError:
-    #         return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     routines_data = request.data.get('routines', [])
-
-    #     for routine_data in routines_data:
-    #         routine_id = routine_data.get('id')
-    #         completed = routine_data.get('completed')
-
-    #         if routine_id is None or completed is None:
-    #             return Response({'error': 'Routine ID and completion status are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #         try:
-    #             routine = UserRoutine.objects.get(id=routine_id, user=user, start_date__lte=selected_date, end_date__gte=selected_date)
-    #         except UserRoutine.DoesNotExist:
-    #             return Response({'error': 'Routine not found or does not belong to the user.'}, status=status.HTTP_404_NOT_FOUND)
-
-    #         UserRoutineCompletion.objects.update_or_create(
-    #             user=user,
-    #             routine=routine,
-    #             date=selected_date,
-    #             defaults={'completed': completed}
-    #         )
-
-    #     return Response({'status': 'Routines updated successfully'}, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['patch'])
     def update_schedule(self, request, date=None):
@@ -435,31 +445,6 @@ class CalendarViewSet(viewsets.ViewSet):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'status': 'Schedules updated successfully'}, status=status.HTTP_200_OK)
-    
-# class UpdateRoutineCompletionView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def patch(self, request, date):
-#         try:
-#             user = request.user
-#             date_obj = datetime.strptime(date, '%Y-%m-%d').date()
-#             routine_id = request.data.get('routine_id')
-#             completed = request.data.get('completed')
-
-#             if routine_id is None or completed is None:
-#                 return Response({"detail": "Missing routine_id or completed field."}, status=status.HTTP_400_BAD_REQUEST)
-
-#             try:
-#                 completion = UserRoutineCompletion.objects.get(user=user, routine_id=routine_id, date=date_obj)
-#                 completion.completed = completed
-#                 completion.save()
-#             except UserRoutineCompletion.DoesNotExist:
-#                 return Response({"detail": "UserRoutineCompletion not found."}, status=status.HTTP_404_NOT_FOUND)
-
-#             serializer = UserRoutineCompletionSerializer(completion)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UpdateRoutineCompletionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -484,3 +469,4 @@ class UpdateRoutineCompletionView(APIView):
             return Response({"status": "Routine completion status updated successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
