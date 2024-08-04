@@ -234,6 +234,7 @@ class CalendarViewSet(viewsets.ViewSet):
 
     #     return Response(response_data, status=status.HTTP_200_OK)
 
+
     @action(detail=False, methods=['get'])
     def check_star(self, request, month=None):
         user = self.get_user(request)
@@ -289,37 +290,13 @@ class CalendarViewSet(viewsets.ViewSet):
         ]
 
         # 2. 스케줄이 완료된 날짜 필터링
-        schedule_completed_dates = set(personal_schedules.filter(completed=True).values_list('date', flat=True))
-        all_schedules_count = len(schedule_completed_dates)  # 스케줄의 개수
+        completed_schedule_dates = set(personal_schedules.filter(completed=True).values_list('date', flat=True))
 
-        # 모든 스케줄이 완료된 날짜 중에서 모든 루틴이 완료된 날짜 필터링
-        fully_completed_routine_and_schedule_dates = [
-            date for date in fully_completed_routine_dates
-            if date in schedule_completed_dates
-        ]
-
-        # 스케줄의 날짜를 수집하여 모든 스케줄이 완료된 날짜를 필터링
-        completed_dates_for_schedules = defaultdict(set)
-        for schedule in personal_schedules:
-            if schedule.completed:
-                completed_dates_for_schedules[schedule.date].add('schedule')
-
-        fully_completed_schedule_dates = [
-            date for date, items in completed_dates_for_schedules.items()
-            if len(items) == all_schedules_count
-        ]
-
-        # 모든 스케줄이 완료된 날짜 중에서 모든 루틴이 완료된 날짜 필터링
-        fully_completed_schedule_and_routine_dates = [
-            date for date in fully_completed_schedule_dates
-            if date in fully_completed_routine_dates
-        ]
-
-        # 최종적으로 두 조건을 만족하는 날짜를 집합으로 합침
-        final_completed_dates = set(fully_completed_routine_and_schedule_dates) | set(fully_completed_schedule_and_routine_dates)
+        # 루틴이 완료되지 않아도 스케줄이 완료된 날짜를 포함
+        fully_completed_dates = set(fully_completed_routine_dates) | completed_schedule_dates
 
         # 결과를 문자열 형식으로 변환
-        completed_days = sorted(date.strftime('%Y-%m-%d') for date in final_completed_dates)
+        completed_days = sorted(date.strftime('%Y-%m-%d') for date in fully_completed_dates)
 
         response_data = {
             'completed_days': completed_days
