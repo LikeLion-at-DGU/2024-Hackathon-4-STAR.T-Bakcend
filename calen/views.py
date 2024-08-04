@@ -290,7 +290,7 @@ class CalendarViewSet(viewsets.ViewSet):
 
         # 2. 스케줄이 완료된 날짜 필터링
         schedule_completed_dates = set(personal_schedules.filter(completed=True).values_list('date', flat=True))
-        all_schedules_count = personal_schedules.values('date').distinct().count()
+        all_schedules_count = len(schedule_completed_dates)  # 스케줄의 개수
 
         # 모든 스케줄이 완료된 날짜 중에서 모든 루틴이 완료된 날짜 필터링
         fully_completed_routine_and_schedule_dates = [
