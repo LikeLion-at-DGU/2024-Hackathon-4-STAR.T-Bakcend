@@ -254,7 +254,6 @@ class CalendarViewSet(viewsets.ViewSet):
 
     #     return Response(response_data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
     def check_star(self, request, month=None):
         user = self.get_user(request)
 
@@ -303,18 +302,20 @@ class CalendarViewSet(viewsets.ViewSet):
             for date in routine_completed_dates:
                 completed_dates[date].add(user_routine.id)
 
-        # 스케줄이 완료된 날짜를 추가
-        schedule_completed_dates = set(personal_schedules.values_list('date', flat=True))
-        for date in schedule_completed_dates:
-            completed_dates[date].add('schedule')  # 루틴과 스케줄을 구분하기 위해 'schedule'을 추가
-
-        # 모든 루틴과 스케줄이 완료된 날짜 필터링
+        # 모든 루틴이 완료된 날짜 필터링
         all_routines_count = user_routines.count()
-        all_schedules_count = personal_schedules.values('date').distinct().count()  # 사용자가 가진 모든 스케줄의 개수
-        
-        fully_completed_dates = [
+        fully_completed_routine_dates = [
             date for date, items in completed_dates.items()
-            if len(items) == all_routines_count + all_schedules_count
+            if len(items) == all_routines_count
+        ]
+
+        # 스케줄이 완료된 날짜를 수집
+        schedule_completed_dates = set(personal_schedules.values_list('date', flat=True))
+
+        # 루틴과 스케줄이 모두 완료된 날짜 필터링
+        fully_completed_dates = [
+            date for date in fully_completed_routine_dates
+            if date in schedule_completed_dates
         ]
 
         # 결과를 문자열 형식으로 변환
