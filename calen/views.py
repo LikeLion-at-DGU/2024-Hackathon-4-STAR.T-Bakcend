@@ -160,55 +160,44 @@ class CalendarViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def monthly_calendar(self, request, month=None):
         user = self.get_user(request)
-
+        
         if user is None:
             return Response({'error': '인증 자격 증명이 제공되지 않았습니다.'}, status=status.HTTP_403_FORBIDDEN)
-
+        
         if not month:
             return Response({'error': '월 파라미터가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         try:
             selected_month = datetime.strptime(month, '%Y-%m')
         except ValueError:
             return Response({'error': '잘못된 월 형식입니다. 형식은 YYYY-MM 입니다.'}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         # 해당 월의 첫 날과 마지막 날을 계산합니다.
         start_date = selected_month.replace(day=1)
         end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-
-        # 해당 월에 포함되는 모든 UserRoutine을 가져옵니다.
-        user_routines = UserRoutine.objects.filter(
-            user=user,
-            start_date__lte=end_date,
-            end_date__gte=start_date
-        )
-
-        # 날짜별로 모든 루틴이 완료되었는지를 체크할 리스트 초기화
+        
+        # 날짜별로 모든 루틴과 스케줄이 완료되었는지를 체크할 리스트 초기화
         completed_dates = []
-
+        
         # 월 내의 모든 날짜를 확인합니다.
         for single_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
-            # 해당 날짜에 루틴이 모두 완료되었는지 확인합니다.
-            routines_for_date = user_routines.filter(
-                start_date__lte=single_date,
-                end_date__gte=single_date
+            # 해당 날짜에 대한 루틴과 스케줄 가져오기
+            routines_for_date = UserRoutineCompletion.objects.filter(
+                user=user,
+                date=single_date
             )
-
-            # 모든 루틴이 완료되었는지 체크
-            all_completed = True
-            for routine in routines_for_date:
-                if not UserRoutineCompletion.objects.filter(
-                        user=user,
-                        routine=routine,
-                        date=single_date,
-                        completed=True
-                ).exists():
-                    all_completed = False
-                    break
-
-            if all_completed:
+            schedules_for_date = PersonalSchedule.objects.filter(
+                user=user,
+                date=single_date
+            )
+            
+            # 모든 루틴과 스케줄이 완료되었는지 체크
+            all_routines_completed = all(routine.completed for routine in routines_for_date)
+            all_schedules_completed = all(schedule.completed for schedule in schedules_for_date)
+            
+            if all_routines_completed and all_schedules_completed:
                 completed_dates.append(single_date.isoformat())
-
+        
         return Response(completed_dates, status=status.HTTP_200_OK)
 
     # @action(detail=False, methods=['get'])
