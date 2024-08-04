@@ -8,6 +8,8 @@ from search.models import Theme
 from rest_framework.decorators import action
 from calen.models import UserRoutine
 from calen.serializers import UserRoutineSerializer
+from accounts.models import User
+from accounts.serializers import NicknameSerializer
 
 class RoutineViewSet(viewsets.ModelViewSet):
     queryset = Routine.objects.all()
@@ -46,6 +48,9 @@ class MainPageViewSet(viewsets.ViewSet):
         latest_routines = Routine.objects.order_by('-create_at')[:10]
         themes = Theme.objects.all()
         challenges = UserRoutine.objects.filter(user=user)
+        
+        
+        nickname_serializers = NicknameSerializer(user)
 
         challenge_data = []
         for challenge in challenges:
@@ -101,6 +106,7 @@ class MainPageViewSet(viewsets.ViewSet):
             "new_update": new_update_data,
             "user_routine": user_routine_data,
             "hot_routine": hot_routine_data,
+            "nickname": nickname_serializers.data
         })
 
 
