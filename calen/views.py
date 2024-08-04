@@ -177,7 +177,7 @@ class CalendarViewSet(viewsets.ViewSet):
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=False, methods=['get', 'post'])
+    @action(detail=False, methods=['get', 'post', 'patch'])
     def daily(self, request, date=None):
         user = self.get_user(request)
 
@@ -462,44 +462,44 @@ class UpdateRoutineCompletionView(APIView):
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class UpdateScheduleView(APIView):
-    permission_classes = [IsAuthenticated]
+# class UpdateScheduleView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def patch(self, request, date):
-        user = request.user
+#     def patch(self, request, date):
+#         user = request.user
 
-        if not date:
-            return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+#         if not date:
+#             return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            selected_date = parse_date(date)
-            if selected_date is None:
-                raise ValueError("Invalid date format")
-        except ValueError:
-            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+#         try:
+#             selected_date = parse_date(date)
+#             if selected_date is None:
+#                 raise ValueError("Invalid date format")
+#         except ValueError:
+#             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
 
-        schedules_data = request.data.get('schedules', [])
+#         schedules_data = request.data.get('schedules', [])
 
-        if not isinstance(schedules_data, list):
-            return Response({'error': 'Schedules data should be a list'}, status=status.HTTP_400_BAD_REQUEST)
+#         if not isinstance(schedules_data, list):
+#             return Response({'error': 'Schedules data should be a list'}, status=status.HTTP_400_BAD_REQUEST)
 
-        errors = []
-        for schedule_data in schedules_data:
-            schedule_id = schedule_data.get('id')
-            if schedule_id:
-                try:
-                    schedule = PersonalSchedule.objects.get(id=schedule_id, user=user, date=selected_date)
-                except PersonalSchedule.DoesNotExist:
-                    errors.append(f'PersonalSchedule with id {schedule_id} not found.')
-                    continue
+#         errors = []
+#         for schedule_data in schedules_data:
+#             schedule_id = schedule_data.get('id')
+#             if schedule_id:
+#                 try:
+#                     schedule = PersonalSchedule.objects.get(id=schedule_id, user=user, date=selected_date)
+#                 except PersonalSchedule.DoesNotExist:
+#                     errors.append(f'PersonalSchedule with id {schedule_id} not found.')
+#                     continue
 
-                serializer = PersonalScheduleSerializer(schedule, data=schedule_data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
-                else:
-                    errors.extend(serializer.errors)
+#                 serializer = PersonalScheduleSerializer(schedule, data=schedule_data, partial=True)
+#                 if serializer.is_valid():
+#                     serializer.save()
+#                 else:
+#                     errors.extend(serializer.errors)
         
-        if errors:
-            return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+#         if errors:
+#             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response({'status': 'Schedules updated successfully'}, status=status.HTTP_200_OK)
+#         return Response({'status': 'Schedules updated successfully'}, status=status.HTTP_200_OK)
