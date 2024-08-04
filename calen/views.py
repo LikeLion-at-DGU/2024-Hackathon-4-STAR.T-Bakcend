@@ -271,7 +271,7 @@ class CalendarViewSet(viewsets.ViewSet):
             date__range=[start_date, end_date]
         )
 
-        # 1. 루틴이 완료된 날짜 필터링
+        # 1. 루틴이 완료된 날짜 수집
         completed_dates = defaultdict(set)
         for user_routine in user_routines:
             routine_completed_dates = UserRoutineCompletion.objects.filter(
@@ -289,14 +289,24 @@ class CalendarViewSet(viewsets.ViewSet):
             if len(items) == all_routines_count
         ]
 
-        # 2. 스케줄이 완료된 날짜 필터링
+        # 2. 스케줄이 완료된 날짜 수집
         completed_schedule_dates = set(personal_schedules.filter(completed=True).values_list('date', flat=True))
+        
+        # 3. 루틴과 스케줄 모두 완료된 날짜 필터링
+        fully_completed_dates = [
+            date for date in fully_completed_routine_dates
+            if date in completed_schedule_dates
+        ]
 
-        # 루틴이 완료되지 않아도 스케줄이 완료된 날짜를 포함
-        fully_completed_dates = set(fully_completed_routine_dates) | completed_schedule_dates
-
+        # 4. 스케줄만 있는 날짜에 대해 스케줄이 모두 완료된 경우를 확인
+        all_schedules_dates = set(personal_schedules.values_list('date', flat=True))
+        fully_completed_schedule_dates = [
+            date for date in all_schedules_dates
+            if all(personal_schedules.filter(date=date).values_list('completed', flat=True))
+        ]
+        
         # 결과를 문자열 형식으로 변환
-        completed_days = sorted(date.strftime('%Y-%m-%d') for date in fully_completed_dates)
+        completed_days = sorted(date.strftime('%Y-%m-%d') for date in fully_completed_dates + fully_completed_schedule_dates)
 
         response_data = {
             'completed_days': completed_days
