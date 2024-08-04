@@ -267,11 +267,10 @@ class CalendarViewSet(viewsets.ViewSet):
         # 해당 월의 모든 스케줄을 가져옴
         personal_schedules = PersonalSchedule.objects.filter(
             user=user,
-            date__range=[start_date, end_date],
-            completed=True
+            date__range=[start_date, end_date]
         )
 
-        # 루틴이 완료된 날짜를 수집
+        # 1. 루틴이 완료된 날짜 필터링
         completed_dates = defaultdict(set)
         for user_routine in user_routines:
             routine_completed_dates = UserRoutineCompletion.objects.filter(
@@ -283,30 +282,44 @@ class CalendarViewSet(viewsets.ViewSet):
             for date in routine_completed_dates:
                 completed_dates[date].add(user_routine.id)
 
-        # 모든 루틴이 완료된 날짜 필터링
         all_routines_count = user_routines.count()
         fully_completed_routine_dates = [
             date for date, items in completed_dates.items()
             if len(items) == all_routines_count
         ]
 
-        # 스케줄이 완료된 날짜를 수집
-        schedule_completed_dates = set(personal_schedules.values_list('date', flat=True))
+        # 2. 스케줄이 완료된 날짜 필터링
+        schedule_completed_dates = set(personal_schedules.filter(completed=True).values_list('date', flat=True))
+        all_schedules_count = personal_schedules.values('date').distinct().count()
 
-        # 모든 루틴이 완료된 날짜와 스케줄만 완료된 날짜 필터링
-        fully_completed_dates = [
+        # 모든 스케줄이 완료된 날짜 중에서 모든 루틴이 완료된 날짜 필터링
+        fully_completed_routine_and_schedule_dates = [
             date for date in fully_completed_routine_dates
             if date in schedule_completed_dates
         ]
 
-        # 모든 스케줄만 완료된 날짜도 포함
-        fully_completed_dates.extend([
-            date for date in schedule_completed_dates
-            if date not in fully_completed_routine_dates
-        ])
+        # 스케줄의 날짜를 수집하여 모든 스케줄이 완료된 날짜를 필터링
+        completed_dates_for_schedules = defaultdict(set)
+        for schedule in personal_schedules:
+            if schedule.completed:
+                completed_dates_for_schedules[schedule.date].add('schedule')
+
+        fully_completed_schedule_dates = [
+            date for date, items in completed_dates_for_schedules.items()
+            if len(items) == all_schedules_count
+        ]
+
+        # 모든 스케줄이 완료된 날짜 중에서 모든 루틴이 완료된 날짜 필터링
+        fully_completed_schedule_and_routine_dates = [
+            date for date in fully_completed_schedule_dates
+            if date in fully_completed_routine_dates
+        ]
+
+        # 최종적으로 두 조건을 만족하는 날짜를 집합으로 합침
+        final_completed_dates = set(fully_completed_routine_and_schedule_dates) | set(fully_completed_schedule_and_routine_dates)
 
         # 결과를 문자열 형식으로 변환
-        completed_days = sorted(date.strftime('%Y-%m-%d') for date in fully_completed_dates)
+        completed_days = sorted(date.strftime('%Y-%m-%d') for date in final_completed_dates)
 
         response_data = {
             'completed_days': completed_days
