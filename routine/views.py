@@ -48,9 +48,7 @@ class MainPageViewSet(viewsets.ViewSet):
         latest_routines = Routine.objects.order_by('-create_at')[:10]
         themes = Theme.objects.all()
         challenges = UserRoutine.objects.filter(user=user)
-        
-        
-        nickname_serializers = NicknameSerializer(user)
+
 
         challenge_data = []
         for challenge in challenges:
@@ -76,6 +74,18 @@ class MainPageViewSet(viewsets.ViewSet):
                 "image": theme.image,
                 "url": theme.id
             })
+        
+        hot_routine_data = []
+        for hot_routine in hot_routines:
+            routine_data = {
+                "id": hot_routine.id,
+                "title": hot_routine.title,
+                "celeb_name": hot_routine.celebrity.name,
+                "image": hot_routine.image,  # 이미지 URL로 가정
+                "url": hot_routine.celebrity.id,  # Celeb 페이지 URL로 가정
+                "nicknmae" : user.nickname
+            }
+            hot_routine_data.append(routine_data)
 
         def create_routine_data(routines, include_popular=False):
             routine_data = []
@@ -95,18 +105,17 @@ class MainPageViewSet(viewsets.ViewSet):
                     routine_info["popular"] = routine.popular
                 routine_data.append(routine_info)
             return routine_data
-
+        
         new_update_data = create_routine_data(latest_routines)
         user_routine_data = create_routine_data(user_routines)
-        hot_routine_data = create_routine_data(hot_routines, include_popular=True)
+        #hot_routine_data = create_routine_data(hot_routines, include_popular=True)
 
         return Response({
             "theme": theme_data,
             "challenge" : challenge_data,
             "new_update": new_update_data,
             "user_routine": user_routine_data,
-            "hot_routine": hot_routine_data,
-            "nickname": nickname_serializers.data
+            "hot_routine": hot_routine_data
         })
 
 
