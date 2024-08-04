@@ -16,6 +16,9 @@ from django.core.exceptions import ValidationError
 from rest_framework.views import APIView
 from datetime import datetime
 
+from collections import defaultdict
+
+
 class CalendarViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
@@ -192,6 +195,58 @@ class CalendarViewSet(viewsets.ViewSet):
 
     #     return Response({'check_star': all_completed}, status=status.HTTP_200_OK)
 
+
+    # (루틴만) 특정 날짜만 반환되는데, 여러개중 한개만 true여도 반환됨 
+    # @action(detail=False, methods=['get'])
+    # def check_star(self, request, month=None):
+    #     user = self.get_user(request)
+
+    #     if user is None:
+    #         return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
+
+    #     if not month:
+    #         return Response({'error': 'Month parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     try:
+    #         # 월을 'YYYY-MM' 형식으로 파싱
+    #         year, month = month.split('-')
+    #         year = int(year)
+    #         month = int(month)
+    #         if month < 1 or month > 12:
+    #             raise ValueError("Invalid month")
+    #         start_date = datetime(year, month, 1)
+    #         end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+    #     except (ValueError, TypeError, ValidationError):
+    #         return Response({'error': 'Invalid month format'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     # 해당 월의 모든 루틴을 가져옴
+    #     user_routines = UserRoutine.objects.filter(
+    #         user=user,
+    #         start_date__lte=end_date,
+    #         end_date__gte=start_date
+    #     )
+
+    #     # 완료된 날짜를 수집
+    #     completed_dates = set()
+    #     for user_routine in user_routines:
+    #         completed_dates.update(
+    #             UserRoutineCompletion.objects.filter(
+    #                 user=user,
+    #                 routine=user_routine,
+    #                 date__range=[start_date, end_date],
+    #                 completed=True
+    #             ).values_list('date', flat=True)
+    #         )
+
+    #     # 월별 완료된 날짜를 그룹화
+    #     days = sorted(date.day for date in completed_dates)
+        
+    #     response_data = {
+    #         'completed_days': days
+    #     }
+
+    #     return Response(response_data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['get'])
     def check_star(self, request, month=None):
         user = self.get_user(request)
@@ -209,9 +264,10 @@ class CalendarViewSet(viewsets.ViewSet):
             month = int(month)
             if month < 1 or month > 12:
                 raise ValueError("Invalid month")
+            
             start_date = datetime(year, month, 1)
             end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-        except (ValueError, TypeError, ValidationError):
+        except (ValueError, TypeError):
             return Response({'error': 'Invalid month format'}, status=status.HTTP_400_BAD_REQUEST)
 
         # 해당 월의 모든 루틴을 가져옴
@@ -222,22 +278,26 @@ class CalendarViewSet(viewsets.ViewSet):
         )
 
         # 완료된 날짜를 수집
-        completed_dates = set()
+        completed_dates = defaultdict(set)
         for user_routine in user_routines:
-            completed_dates.update(
-                UserRoutineCompletion.objects.filter(
-                    user=user,
-                    routine=user_routine,
-                    date__range=[start_date, end_date],
-                    completed=True
-                ).values_list('date', flat=True)
-            )
+            routine_completed_dates = UserRoutineCompletion.objects.filter(
+                user=user,
+                routine=user_routine,
+                date__range=[start_date, end_date],
+                completed=True
+            ).values_list('date', flat=True)
+            for date in routine_completed_dates:
+                completed_dates[date].add(user_routine.id)
 
-        # 월별 완료된 날짜를 그룹화
-        days = sorted(date.day for date in completed_dates)
-        
+        # 모든 루틴이 완료된 날짜 필터링
+        all_routines_count = user_routines.count()
+        fully_completed_dates = [date for date, routines in completed_dates.items() if len(routines) == all_routines_count]
+
+        # 결과를 문자열 형식으로 변환
+        completed_days = sorted(date.strftime('%Y-%m-%d') for date in fully_completed_dates)
+
         response_data = {
-            'completed_days': days
+            'completed_days': completed_days
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
