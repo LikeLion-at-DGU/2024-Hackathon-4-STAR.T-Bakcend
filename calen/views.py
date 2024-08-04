@@ -101,7 +101,6 @@ class CalendarViewSet(viewsets.ViewSet):
     #         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     # 
-
     @action(detail=False, methods=['get'])
     def monthly(self, request, month=None):
         user = self.get_user(request)
@@ -136,22 +135,13 @@ class CalendarViewSet(viewsets.ViewSet):
                 if response.status_code == status.HTTP_200_OK and response.data.get('check_star', False):
                     completed_days.append(date_str)
 
-            monthly_title = MonthlyTitle.objects.filter(
-                user=user,
-                month__year=year,
-                month__month=month
-            )
-
             return Response({
                 'completed_days': sorted(completed_days),
-                'monthly_title': MonthlyTitleSerializer(monthly_title, many=True).data
             })
 
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    
-    
     
     @action(detail=False, methods=['get'])
     def daily(self, request, date=None):
@@ -227,7 +217,7 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-
+    
     @action(detail=True, methods=['post'])
     def add_routine(self, request, id=None):
         user = self.get_user(request)
