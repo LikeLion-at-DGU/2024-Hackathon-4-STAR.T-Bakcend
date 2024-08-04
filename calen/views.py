@@ -241,3 +241,27 @@ class CalendarViewSet(viewsets.ViewSet):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+    
+class UpdateRoutineCompletionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, date):
+        try:
+            user = request.user
+            date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+            routine_id = request.data.get('routine_id')
+            completed = request.data.get('completed')
+
+            if routine_id is None or completed is None:
+                return Response({"detail": "Missing routine_id or completed field."}, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                completion = UserRoutineCompletion.objects.get(user=user, routine_id=routine_id, date=date_obj)
+                completion.completed = completed
+                completion.save()
+            except UserRoutineCompletion.DoesNotExist:
+                return Response({"detail": "UserRoutineCompletion not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+            return Response({"status": "Routine completion status updated successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
