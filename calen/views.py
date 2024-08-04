@@ -281,12 +281,12 @@ class CalendarViewSet(viewsets.ViewSet):
 
         if request.method == 'GET':
             routines = UserRoutine.objects.filter(
-                user=user,  # 요청한 사용자의 정보 사용
+                user=user,
                 start_date__lte=selected_date,
                 end_date__gte=selected_date,
             )
             schedules = PersonalSchedule.objects.filter(
-                user=user,  # 요청한 사용자의 정보 사용
+                user=user,
                 date=selected_date
             )
 
@@ -302,20 +302,20 @@ class CalendarViewSet(viewsets.ViewSet):
             })
 
         elif request.method == 'POST':
-            serializer = PersonalScheduleSerializer(user=user, data=request.data)
+            serializer = PersonalScheduleSerializer(data=request.data, context={'request': request})
             if serializer.is_valid():
-                serializer.save(date=selected_date)  # 사용자 정보 저장
+                serializer.save()  # user는 시리얼라이저의 create 메서드에서 설정됨
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         elif request.method == 'PATCH':
             try:
                 schedule_id = request.data.get('id')
-                schedule = PersonalSchedule.objects.get(id=schedule_id, user=user)  # 사용자 정보 사용
+                schedule = PersonalSchedule.objects.get(id=schedule_id, user=user)
             except PersonalSchedule.DoesNotExist:
                 return Response({'error': 'PersonalSchedule not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            serializer = PersonalScheduleSerializer(schedule, data=request.data, partial=True)
+            serializer = PersonalScheduleSerializer(schedule, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
