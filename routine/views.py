@@ -108,7 +108,6 @@ class MainPageViewSet(viewsets.ViewSet):
         
         new_update_data = create_routine_data(latest_routines)
         user_routine_data = create_routine_data(user_routines)
-        #hot_routine_data = create_routine_data(hot_routines, include_popular=True)
 
         return Response({
             "theme": theme_data,
