@@ -367,7 +367,7 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            schedule = PersonalSchedule.objects.get(user=request.user, date=date_obj)
+            schedule = PersonalSchedule.objects.filter(user=request.user, date=date_obj)
         except PersonalSchedule.DoesNotExist:
             return Response({"detail": "Schedule not found"}, status=status.HTTP_404_NOT_FOUND)
 
