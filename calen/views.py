@@ -264,7 +264,7 @@ class CalendarViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get', 'post', 'patch'])
     def daily(self, request, date=None):
-        user = self.get_user(request)  # 사용자 정보를 가져옴
+        user = self.get_user(request) 
 
         if user is None:
             return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
@@ -302,7 +302,7 @@ class CalendarViewSet(viewsets.ViewSet):
             })
 
         elif request.method == 'POST':
-            serializer = PersonalScheduleSerializer(data=request.data)
+            serializer = PersonalScheduleSerializer(user=user, data=request.data)
             if serializer.is_valid():
                 serializer.save(date=selected_date)  # 사용자 정보 저장
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
