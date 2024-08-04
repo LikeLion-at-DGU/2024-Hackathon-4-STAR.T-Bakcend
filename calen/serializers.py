@@ -34,6 +34,11 @@ class PersonalScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = PersonalSchedule
         fields = '__all__'
+    
+    def create(self, validated_data):
+        user = self.context['request'].user  # 요청한 사용자를 자동으로 추가
+        validated_data['user'] = user
+        return super().create(validated_data)
 
 class MonthlyTitleSerializer(serializers.ModelSerializer):
     class Meta:
