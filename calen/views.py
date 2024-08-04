@@ -304,7 +304,7 @@ class CalendarViewSet(viewsets.ViewSet):
         elif request.method == 'POST':
             serializer = PersonalScheduleSerializer(data=request.data, context={'request': request})
             if serializer.is_valid():
-                serializer.save()  # user는 시리얼라이저의 create 메서드에서 설정됨
+                serializer.save(user=request.user, date=selected_date)  # user는 시리얼라이저의 create 메서드에서 설정됨
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -317,7 +317,7 @@ class CalendarViewSet(viewsets.ViewSet):
 
             serializer = PersonalScheduleSerializer(schedule, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid():
-                serializer.save()
+                serializer.save(user=request.user, date=selected_date)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
