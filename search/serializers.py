@@ -13,7 +13,7 @@ class ThemeSerializer(serializers.ModelSerializer):
 class CelebritySerializer(serializers.ModelSerializer):
     class Meta:
         model = Celeb
-        fields = ['id', 'name', 'profession']
+        fields = ['id', 'name', 'profession','image']
 
 class RoutineSerializer(serializers.ModelSerializer):
     celeb = serializers.CharField(source='celebrity.name')
@@ -32,3 +32,6 @@ class RoutineSerializer(serializers.ModelSerializer):
     class Meta:
         model = Routine
         fields = ['id', 'title', 'sub_title', 'content', 'category', 'celeb', 'image', 'video_url','theme']
+
+
+

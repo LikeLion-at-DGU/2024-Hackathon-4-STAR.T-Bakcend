@@ -17,29 +17,54 @@ class SearchViewSet(viewsets.ViewSet):
         celebrities = Celeb.objects.filter(name__icontains=data) | Celeb.objects.filter(profession__icontains=data)
         routines = Routine.objects.filter(title__icontains=data) #| Routine.objects.filter(content__icontains=data)
         themes = Theme.objects.filter(title__icontains=data) #| Theme.objects.filter(content__icontains=data)
-        print(celebrities)
-        print(themes)
+        ##
+        theme_routines = Routine.objects.all()
         # 직렬화
         celeb_serializer = CelebritySerializer(celebrities, many=True)
-        routine_serializer = RoutineSerializer(routines, many=True)
-        theme_serializer = ThemeSerializer(themes, many=True)
+        # routine_serializer = RoutineSerializer(routines, many=True)
+        #theme_serializer = ThemeSerializer(themes, many=True)
+
+        routine_data = []
+        for routine in routines:
+            # routine.celebrity가 유효한 Celebrity 객체인지 확인
+            if not hasattr(routine.celebrity, 'id'):
+                continue  # celebrity가 유효하지 않으면 무시
+            routine_data.append = ({
+                "id": routine.id,
+                "title": routine.title,
+                "profession": [routine.celebrity.name],
+                "image": routine.image,
+                "url": routine.celebrity.id  # Celeb 페이지 URL
+            })       
+
 
         # 테마에 루틴 추가
         theme_data = []
         for theme in themes:
-            routines_in_theme = routines.filter(theme=theme)
+            routines_in_theme = theme_routines.filter(theme=theme)
             routines_serializer = RoutineSerializer(routines_in_theme, many=True)
             theme_data.append({
                 "id": theme.id,
                 "title": theme.title,
-                "routine_title": [routine['title'] for routine in routines_serializer.data],
+                "profession": [routine['title'] for routine in routines_serializer.data],
                 "image": theme.image,  # 테마 페이지 대표 사진 URL 사용
-                "url": f"http://52.78.17.82/api/theme/{theme.id}/"  # 실제 테마 페이지 URL을 여기에 추가합니다.
+                "url": theme.id # 실제 테마 페이지 URL을 여기에 추가합니다.
+            })
+
+
+        celeb_data = []
+        for celeb in celebrities:
+            celeb_data.append({
+                "id": celeb.id,
+                "title": celeb.name,
+                "profession": [celeb.profession],
+                "image": celeb.photo,
+                "url": celeb.id ,    # 테마 페이지 대표 사진 URL 사용
             })
     
         return Response({
-            "celeb": celeb_serializer.data,
-            #"routines": routine_serializer.data,
+            "celeb": celeb_data,
+            "routines": routine_data,
             "theme": theme_data,
         })
     
