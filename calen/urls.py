@@ -12,8 +12,5 @@ urlpatterns = [
     path('add_routine/<int:id>/', CalendarViewSet.as_view({'post': 'add_routine'}), name='add-routine'),
     # path('calendar/check_star/<str:month>/', CalendarViewSet.as_view({'get': 'check_star'}), name='check_star'),
     path('calendar/daily/<str:date>/update_routine/', UpdateRoutineCompletionView.as_view(), name='update-routine'),
-    # 날짜별 요청
-    path('calendar/check_star/date/<str:date>/', CalendarViewSet.as_view({'get': 'check_star'}), name='check_star_date'),
-    # 월별 요청
-    path('calendar/check_star/month/<str:month>/', CalendarViewSet.as_view({'get': 'check_star'}), name='check_star_month'),
-]
+    path('calendar/monthly/<str:month>/', CalendarViewSet.as_view({'get': 'monthly_calendar'}), name='monthly_calendar'),
+    ]

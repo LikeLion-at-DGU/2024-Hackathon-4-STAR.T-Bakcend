@@ -158,74 +158,56 @@ class CalendarViewSet(viewsets.ViewSet):
         return Response(response_data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'])
-    def check_star(self, request, date=None, month=None):
+    def monthly_calendar(self, request, month=None):
         user = self.get_user(request)
+        
         if user is None:
-            return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
-
-        if date:
-            return self.check_star_for_date(request, date, user)
-
-        elif month:
-            return self.check_star_for_month(request, month, user)
-
-        return Response({'error': 'Date or month parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-    def check_star_for_date(self, request, date, user):
+            return Response({'error': '인증 자격 증명이 제공되지 않았습니다.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if not month:
+            return Response({'error': '월 파라미터가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
         try:
-            selected_date = parse_date(date)
-            if selected_date is None:
-                raise ValueError("Invalid date format")
-        except (ValueError, TypeError, OverflowError):
-            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
-
-        all_routines = UserRoutine.objects.all()
-        all_completed = True
-
-        for routine in all_routines:
-            try:
-                completion = UserRoutineCompletion.objects.get(user=user, routine=routine, date=selected_date)
-                if not completion.completed:
-                    all_completed = False
-                    break
-            except UserRoutineCompletion.DoesNotExist:
-                all_completed = False
-                break
-
-        return Response({'check_star': all_completed}, status=status.HTTP_200_OK)
-
-    def check_star_for_month(self, request, month, user):
-        try:
-            selected_date = parse_date(f'{month}-01')
-            if selected_date is None:
-                raise ValueError("Invalid month format")
-        except (ValueError, TypeError, OverflowError):
-            return Response({'error': 'Invalid month format'}, status=status.HTTP_400_BAD_REQUEST)
-
-        start_date = selected_date.replace(day=1)
+            selected_month = datetime.strptime(month, '%Y-%m')
+        except ValueError:
+            return Response({'error': '잘못된 월 형식입니다. 형식은 YYYY-MM 입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 해당 월의 첫 날과 마지막 날을 계산합니다.
+        start_date = selected_month.replace(day=1)
         end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-
-        all_dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
-        completed_days = []
-
-        all_routines = UserRoutine.objects.all()
-
-        for single_date in all_dates:
-            all_completed = True
-            for routine in all_routines:
-                try:
-                    completion = UserRoutineCompletion.objects.get(user=user, routine=routine, date=single_date)
-                    if not completion.completed:
-                        all_completed = False
-                        break
-                except UserRoutineCompletion.DoesNotExist:
-                    all_completed = False
-                    break
-
+        
+        # 해당 월에 포함되는 모든 UserRoutine을 가져옵니다.
+        user_routines = UserRoutine.objects.filter(
+            user=user,
+            start_date__lte=end_date,
+            end_date__gte=start_date
+        )
+        
+        # 날짜별로 모든 루틴이 완료되었는지를 체크할 리스트 초기화
+        completed_dates = []
+        
+        # 월 내의 모든 날짜를 확인합니다.
+        for single_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
+            # 해당 날짜에 루틴이 모두 완료되었는지 확인합니다.
+            routines_for_date = user_routines.filter(
+                start_date__lte=single_date,
+                end_date__gte=single_date
+            )
+            
+            # 모든 루틴이 완료되었는지 체크
+            all_completed = all(
+                UserRoutineCompletion.objects.filter(
+                    user=user,
+                    routine=routine,
+                    date=single_date,
+                    completed=True
+                ).exists() for routine in routines_for_date
+            )
+            
             if all_completed:
-                completed_days.append(single_date.strftime('%Y-%m-%d'))
-
-        return Response({'completed_days': sorted(completed_days)}, status=status.HTTP_200_OK)
+                completed_dates.append(single_date.isoformat())
+        
+        return Response(completed_dates, status=status.HTTP_200_OK)
 
     # @action(detail=False, methods=['get'])
     # def check_star(self, request, date=None):
