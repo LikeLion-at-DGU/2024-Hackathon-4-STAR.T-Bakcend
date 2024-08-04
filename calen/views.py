@@ -101,7 +101,8 @@ class CalendarViewSet(viewsets.ViewSet):
     #         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     # 
-    @action(detail=False, methods=['get', 'post', 'patch'])
+
+    @action(detail=False, methods=['get'])
     def monthly(self, request, month=None):
         user = self.get_user(request)
 
@@ -127,55 +128,30 @@ class CalendarViewSet(viewsets.ViewSet):
             # 모든 날짜를 위한 리스트 생성
             all_dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
 
-            check_star_days = []
-
-            # 월의 모든 날짜에 대해 check_star를 호출
+            # check_star가 true인 날짜 리스트 생성
+            completed_days = []
             for single_date in all_dates:
                 date_str = single_date.strftime('%Y-%m-%d')
                 response = self.check_star(request, date=date_str)
-                if response.status_code == status.HTTP_200_OK and response.data.get('completed', False):
-                    check_star_days.append(date_str)
+                if response.status_code == status.HTTP_200_OK and response.data.get('check_star', False):
+                    completed_days.append(date_str)
 
-            if request.method == 'GET':
-                monthly_title = MonthlyTitle.objects.filter(
-                    user=user,
-                    month__year=year,
-                    month__month=month
-                )
+            monthly_title = MonthlyTitle.objects.filter(
+                user=user,
+                month__year=year,
+                month__month=month
+            )
 
-                return Response({
-                    'check_star_days': sorted(check_star_days),
-                    'monthly_title': MonthlyTitleSerializer(monthly_title, many=True).data
-                })
-
-            elif request.method == 'POST':
-                if MonthlyTitle.objects.filter(user=user, month__year=year, month__month=month).exists():
-                    return Response({'error': 'MonthlyTitle for this month already exists.'}, status=status.HTTP_400_BAD_REQUEST)
-
-                serializer = MonthlyTitleSerializer(data=request.data)
-                if serializer.is_valid():
-                    serializer.save(user=user, month=month_date)
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-            elif request.method == 'PATCH':
-                title_id = request.data.get('id')
-                if not title_id:
-                    return Response({'error': 'ID parameter is required for update'}, status=status.HTTP_400_BAD_REQUEST)
-
-                try:
-                    monthly_title = MonthlyTitle.objects.get(id=title_id, user=user, month__year=year, month__month=month)
-                except MonthlyTitle.DoesNotExist:
-                    return Response({'error': 'MonthlyTitle not found'}, status=status.HTTP_404_NOT_FOUND)
-
-                serializer = MonthlyTitleSerializer(monthly_title, data=request.data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'completed_days': sorted(completed_days),
+                'monthly_title': MonthlyTitleSerializer(monthly_title, many=True).data
+            })
 
         except ValueError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    
+    
     
     @action(detail=False, methods=['get'])
     def daily(self, request, date=None):
@@ -251,7 +227,7 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    
+
     @action(detail=True, methods=['post'])
     def add_routine(self, request, id=None):
         user = self.get_user(request)
