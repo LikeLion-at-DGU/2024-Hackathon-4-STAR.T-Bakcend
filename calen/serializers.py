@@ -15,21 +15,6 @@ class UserRoutineSerializer(serializers.ModelSerializer):
         model = UserRoutine
         fields = '__all__' 
 
-    # def get_completed(self, obj):
-    #     user = self.context['request'].user
-        
-    #     completions = UserRoutineCompletion.objects.filter(
-    #         user=user,
-    #         routine=obj,
-    #         completed=True
-    #     )
-        
-    #     for completion in completions:
-    #         if completion.date == self.context.get('selected_date'):
-    #             return True
-        
-    #     return False
-
     def get_completed(self, obj):
         # context에서 request를 가져옵니다
         request = self.context.get('request')
@@ -55,6 +40,11 @@ class PersonalScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = PersonalSchedule
         fields = '__all__'
+
+        extra_kwargs = {
+                'title': {'required': False},   # 선택적 필드
+                'description': {'required': False},  # 선택적 필드
+            }
 
 class MonthlyTitleSerializer(serializers.ModelSerializer):
     class Meta:
