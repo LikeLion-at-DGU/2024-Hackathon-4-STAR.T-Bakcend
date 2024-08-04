@@ -24,6 +24,14 @@ class RoutineSerializer(serializers.ModelSerializer):
         slug_field='title'
     )
 
+
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = Routine
         fields = ['id', 'title', 'sub_title', 'content', 'image', 'video_url', 'category', 'celebrity', 'theme', 'popular']
+
+    def get_image(self,obj):
+        if obj.celebrity and obj.celebrity.photo:
+            return obj.celebrity.photo
+        return None
