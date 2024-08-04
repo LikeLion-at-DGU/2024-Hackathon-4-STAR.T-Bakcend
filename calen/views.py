@@ -262,68 +262,109 @@ class CalendarViewSet(viewsets.ViewSet):
     #     except ValueError:
     #         return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get', 'post', 'patch'])
+    # @action(detail=False, methods=['get', 'post', 'patch'])
+    # def daily(self, request, date=None):
+    #     user = self.get_user(request) 
+
+    #     if user is None:
+    #         return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
+
+    #     if not date:
+    #         return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     try:
+    #         selected_date = parse_date(date)
+    #         if selected_date is None:
+    #             raise ValueError("Invalid date format")
+    #     except ValueError:
+    #         return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     if request.method == 'GET':
+    #         routines = UserRoutine.objects.filter(
+    #             user=user,
+    #             start_date__lte=selected_date,
+    #             end_date__gte=selected_date,
+    #         )
+    #         schedules = PersonalSchedule.objects.filter(
+    #             user=user,
+    #             date=selected_date
+    #         )
+
+    #         serializer_context = {
+    #             'request': request,
+    #             'selected_date': selected_date
+    #         }
+
+    #         return Response({
+    #             'date': selected_date.strftime('%Y-%m-%d'),
+    #             'routines': UserRoutineSerializer(routines, many=True, context=serializer_context).data,
+    #             'schedules': PersonalScheduleSerializer(schedules, many=True).data,
+    #         })
+
+    #     elif request.method == 'POST':
+    #         serializer = PersonalScheduleSerializer(data=request.data, context={'request': request})
+    #         if serializer.is_valid():
+    #             serializer.save(user=request.user, date=selected_date)  # user는 시리얼라이저의 create 메서드에서 설정됨
+    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    #     elif request.method == 'PATCH':
+    #         try:
+    #             schedule_id = request.data.get('id')
+    #             schedule = PersonalSchedule.objects.get(id=schedule_id, user=user)
+    #         except PersonalSchedule.DoesNotExist:
+    #             return Response({'error': 'PersonalSchedule not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    #         serializer = PersonalScheduleSerializer(schedule, data=request.data, partial=True, context={'request': request})
+    #         if serializer.is_valid():
+    #             serializer.save(user=request.user, date=selected_date)
+    #             return Response(serializer.data, status=status.HTTP_200_OK)
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    #     return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(detail=False, methods=['get'])
     def daily(self, request, date=None):
-        user = self.get_user(request) 
+        date_obj = parse_date(date)
+        if not date_obj:
+            return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user is None:
-            return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
+        schedules = PersonalSchedule.objects.filter(user=request.user, date=date_obj)
+        serializer = PersonalScheduleSerializer(schedules, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        if not date:
-            return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=False, methods=['post'])
+    def create_schedule(self, request, date=None):
+        date_obj = parse_date(date)
+        if not date_obj:
+            return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = request.data
+        data['user'] = request.user.id
+        data['date'] = date_obj
+
+        serializer = PersonalScheduleSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['patch'])
+    def update_schedule(self, request, date=None):
+        date_obj = parse_date(date)
+        if not date_obj:
+            return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            selected_date = parse_date(date)
-            if selected_date is None:
-                raise ValueError("Invalid date format")
-        except ValueError:
-            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+            schedule = PersonalSchedule.objects.get(user=request.user, date=date_obj)
+        except PersonalSchedule.DoesNotExist:
+            return Response({"detail": "Schedule not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.method == 'GET':
-            routines = UserRoutine.objects.filter(
-                user=user,
-                start_date__lte=selected_date,
-                end_date__gte=selected_date,
-            )
-            schedules = PersonalSchedule.objects.filter(
-                user=user,
-                date=selected_date
-            )
-
-            serializer_context = {
-                'request': request,
-                'selected_date': selected_date
-            }
-
-            return Response({
-                'date': selected_date.strftime('%Y-%m-%d'),
-                'routines': UserRoutineSerializer(routines, many=True, context=serializer_context).data,
-                'schedules': PersonalScheduleSerializer(schedules, many=True).data,
-            })
-
-        elif request.method == 'POST':
-            serializer = PersonalScheduleSerializer(data=request.data, context={'request': request})
-            if serializer.is_valid():
-                serializer.save(user=request.user, date=selected_date)  # user는 시리얼라이저의 create 메서드에서 설정됨
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        elif request.method == 'PATCH':
-            try:
-                schedule_id = request.data.get('id')
-                schedule = PersonalSchedule.objects.get(id=schedule_id, user=user)
-            except PersonalSchedule.DoesNotExist:
-                return Response({'error': 'PersonalSchedule not found'}, status=status.HTTP_404_NOT_FOUND)
-
-            serializer = PersonalScheduleSerializer(schedule, data=request.data, partial=True, context={'request': request})
-            if serializer.is_valid():
-                serializer.save(user=request.user, date=selected_date)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-        
+        serializer = PersonalScheduleSerializer(schedule, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def add_routine(self, request, id=None):
