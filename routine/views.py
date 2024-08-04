@@ -74,18 +74,6 @@ class MainPageViewSet(viewsets.ViewSet):
                 "image": theme.image,
                 "url": theme.id
             })
-        
-        hot_routine_data = []
-        for hot_routine in hot_routines:
-            routine_data = {
-                "id": hot_routine.id,
-                "title": hot_routine.title,
-                "celeb_name": hot_routine.celebrity.name,
-                "image": hot_routine.image,  # 이미지 URL로 가정
-                "url": hot_routine.celebrity.id,  # Celeb 페이지 URL로 가정
-                "nicknmae" : user.nickname
-            }
-            hot_routine_data.append(routine_data)
 
         def create_routine_data(routines, include_popular=False):
             routine_data = []
@@ -108,13 +96,13 @@ class MainPageViewSet(viewsets.ViewSet):
         
         new_update_data = create_routine_data(latest_routines)
         user_routine_data = create_routine_data(user_routines)
-
+        hot_routine_data = create_routine_data(hot_routines)
         return Response({
             "theme": theme_data,
-            "challenge" : challenge_data,
-            "new_update": new_update_data,
-            "user_routine": user_routine_data,
-            "hot_routine": hot_routine_data
+            "도전중인 챌린지" : challenge_data,
+            "최근 업데이트": new_update_data,
+            f"{user.nickname}님을 위한 맞춤형 루틴": user_routine_data,
+            "주간 HOT 루틴": hot_routine_data
         })
 
 
