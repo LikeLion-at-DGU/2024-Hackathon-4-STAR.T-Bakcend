@@ -304,7 +304,7 @@ class CalendarViewSet(viewsets.ViewSet):
         elif request.method == 'POST':
             serializer = PersonalScheduleSerializer(data=request.data)
             if serializer.is_valid():
-                serializer.save(user=user, date=selected_date)  # 사용자 정보 저장
+                serializer.save(date=selected_date)  # 사용자 정보 저장
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
