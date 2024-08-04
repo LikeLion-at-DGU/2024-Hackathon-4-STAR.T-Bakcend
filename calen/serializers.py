@@ -15,19 +15,40 @@ class UserRoutineSerializer(serializers.ModelSerializer):
         model = UserRoutine
         fields = '__all__' 
 
-    def get_completed(self, obj):
-        user = self.context['request'].user
+    # def get_completed(self, obj):
+    #     user = self.context['request'].user
         
+    #     completions = UserRoutineCompletion.objects.filter(
+    #         user=user,
+    #         routine=obj,
+    #         completed=True
+    #     )
+        
+    #     for completion in completions:
+    #         if completion.date == self.context.get('selected_date'):
+    #             return True
+        
+    #     return False
+
+    def get_completed(self, obj):
+        # context에서 request를 가져옵니다
+        request = self.context.get('request')
+        if request is None:
+            return False
+
+        user = request.user
+        selected_date = self.context.get('selected_date')
+
         completions = UserRoutineCompletion.objects.filter(
             user=user,
             routine=obj,
             completed=True
         )
-        
+
         for completion in completions:
-            if completion.date == self.context.get('selected_date'):
+            if completion.date == selected_date:
                 return True
-        
+
         return False
 
 class PersonalScheduleSerializer(serializers.ModelSerializer):

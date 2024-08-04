@@ -329,12 +329,14 @@ class CalendarViewSet(viewsets.ViewSet):
         if not date_obj:
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
-        routines = UserRoutine.objects.filter(user=request.user, start_date__lte=date_obj, end_date__gte=date_obj)
+        # 개인 일정 가져오기
         schedules = PersonalSchedule.objects.filter(user=request.user, date=date_obj)
-        
-        routine_serializer = UserRoutineSerializer(routines, many=True)
         schedule_serializer = PersonalScheduleSerializer(schedules, many=True)
-        
+
+        # 루틴 가져오기
+        user_routines = UserRoutine.objects.filter(user=request.user, start_date__lte=date_obj, end_date__gte=date_obj)
+        routine_serializer = UserRoutineSerializer(user_routines, many=True, context={'request': request, 'selected_date': date_obj})
+
         data = {
                 'schedules': schedule_serializer.data,
                 'routines': routine_serializer.data
