@@ -275,7 +275,6 @@ class CalendarViewSet(viewsets.ViewSet):
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
-
     @action(detail=False, methods=['get'])
     def check_star(self, request, date=None):
         user = self.get_user(request)
@@ -293,22 +292,58 @@ class CalendarViewSet(viewsets.ViewSet):
         except (ValueError, TypeError, OverflowError, ValidationError):
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 해당 날짜의 모든 루틴을 가져옴
-        user_routines = UserRoutine.objects.filter(
-            user=user,
-            start_date__lte=selected_date,
-            end_date__gte=selected_date
-        )
+        # 월의 시작일과 마지막일 계산
+        start_date = selected_date.replace(day=1)
+        end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
 
-        # 모든 루틴이 완료되었는지 확인
-        all_completed = all(UserRoutineCompletion.objects.filter(
-            user=user,
-            routine=user_routine,
-            date=selected_date,
-            completed=True
-        ).exists() for user_routine in user_routines)
+        # 모든 날짜를 위한 리스트 생성
+        all_dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
 
-        return Response({'check_star': all_completed}, status=status.HTTP_200_OK)
+        completed_days = []
+
+        # 월의 모든 날짜에 대해 check_star를 호출
+        for single_date in all_dates:
+            date_str = single_date.strftime('%Y-%m-%d')
+            response = self.check_star(request, date=date_str)
+            if response.status_code == status.HTTP_200_OK and response.data.get('check_star', False):
+                completed_days.append(date_str)
+
+        return Response({'completed_days': sorted(completed_days)}, status=status.HTTP_200_OK)
+
+
+    # @action(detail=False, methods=['get'])
+    # def check_star(self, request, date=None):
+    #     user = self.get_user(request)
+
+    #     if user is None:
+    #         return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
+
+    #     if not date:
+    #         return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     try:
+    #         selected_date = parse_date(date)
+    #         if selected_date is None:
+    #             raise ValueError("Invalid date format")
+    #     except (ValueError, TypeError, OverflowError, ValidationError):
+    #         return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     # 해당 날짜의 모든 루틴을 가져옴
+    #     user_routines = UserRoutine.objects.filter(
+    #         user=user,
+    #         start_date__lte=selected_date,
+    #         end_date__gte=selected_date
+    #     )
+
+    #     # 모든 루틴이 완료되었는지 확인
+    #     all_completed = all(UserRoutineCompletion.objects.filter(
+    #         user=user,
+    #         routine=user_routine,
+    #         date=selected_date,
+    #         completed=True
+    #     ).exists() for user_routine in user_routines)
+
+    #     return Response({'check_star': all_completed}, status=status.HTTP_200_OK)
 
 class UpdateRoutineCompletionView(APIView):
     permission_classes = [IsAuthenticated]
