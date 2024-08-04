@@ -329,9 +329,18 @@ class CalendarViewSet(viewsets.ViewSet):
         if not date_obj:
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
+        routines = UserRoutine.objects.filter(user=request.user, start_date__lte=date_obj, end_date__gte=date_obj)
         schedules = PersonalSchedule.objects.filter(user=request.user, date=date_obj)
-        serializer = PersonalScheduleSerializer(schedules, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        routine_serializer = UserRoutineSerializer(routines, many=True)
+        schedule_serializer = PersonalScheduleSerializer(schedules, many=True)
+        
+        data = {
+                'schedules': schedule_serializer.data,
+                'routines': routine_serializer.data
+            }
+
+        return Response(data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'])
     def create_schedule(self, request, date=None):
