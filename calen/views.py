@@ -156,7 +156,7 @@ class CalendarViewSet(viewsets.ViewSet):
         }
 
         return Response(response_data, status=status.HTTP_201_CREATED)
-
+    # 날짜에 대한 true, False
     # @action(detail=False, methods=['get'])
     # def check_star(self, request, date=None):
     #     user = self.get_user(request)
@@ -262,20 +262,18 @@ class CompletedDatesView(APIView):
         # 시작일과 종료일 계산
         start_date, end_date = self.get_start_and_end_dates(year, month)
         
-        # 월의 모든 날짜를 데이터베이스에서 직접 조회
+        # 월의 모든 날짜를 계산
+        all_dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+        
+        # 날짜별 완료 여부를 저장할 딕셔너리
+        date_completed_map = {date: True for date in all_dates}
+        
+        # PersonalSchedule과 UserRoutineCompletion 조회
         schedules = PersonalSchedule.objects.filter(user=user, date__range=[start_date, end_date])
         routines = UserRoutineCompletion.objects.filter(user=user, date__range=[start_date, end_date])
         
-        # 날짜별로 완료 상태를 추적하기 위한 사전
-        schedule_dates = set(schedules.values_list('date', flat=True))
-        routine_dates = set(routines.values_list('date', flat=True))
-        
-        # 완료된 날짜를 추적하기 위한 집합
-        completed_dates = []
-        
-        # 월의 모든 날짜에 대해 체크
-        current_date = start_date
-        while current_date <= end_date:
+        # 각 날짜에 대해 완료 여부를 업데이트
+        for current_date in all_dates:
             # 해당 날짜의 PersonalSchedule 및 UserRoutineCompletion 조회
             schedules_today = schedules.filter(date=current_date)
             routines_today = routines.filter(date=current_date)
@@ -286,12 +284,12 @@ class CompletedDatesView(APIView):
             # 모든 UserRoutineCompletion이 완료되었는지 확인
             all_routines_completed = all(routine.completed for routine in routines_today)
             
-            # 두 조건 모두 만족하는 경우에만 추가
-            if all_schedules_completed and all_routines_completed:
-                completed_dates.append(current_date)
-            
-            # 다음 날짜로 이동
-            current_date += timedelta(days=1)
+            # 두 조건 모두 만족하지 않으면 False로 설정
+            if not all_schedules_completed or not all_routines_completed:
+                date_completed_map[current_date] = False
+        
+        # 완료된 날짜만 필터링
+        completed_dates = [date for date, completed in date_completed_map.items() if completed]
 
         return Response({"completed_dates": completed_dates})
 
