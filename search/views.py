@@ -20,7 +20,7 @@ class SearchViewSet(viewsets.ViewSet):
         ##
         theme_routines = Routine.objects.all()
         # 직렬화
-        celeb_serializer = CelebritySerializer(celebrities, many=True)
+        #celeb_serializer = CelebritySerializer(celebrities, many=True)
         # routine_serializer = RoutineSerializer(routines, many=True)
         #theme_serializer = ThemeSerializer(themes, many=True)
 
@@ -29,7 +29,7 @@ class SearchViewSet(viewsets.ViewSet):
             # routine.celebrity가 유효한 Celebrity 객체인지 확인
             if not hasattr(routine.celebrity, 'id'):
                 continue  # celebrity가 유효하지 않으면 무시
-            routine_data.append = ({
+            routine_data.append({
                 "id": routine.id,
                 "title": routine.title,
                 "profession": [routine.celebrity.name],
