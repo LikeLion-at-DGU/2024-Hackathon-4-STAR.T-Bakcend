@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.utils.dateparse import parse_date
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
+from django.db import models
 
 from .models import UserRoutine, PersonalSchedule, MonthlyTitle, UserRoutineCompletion
 from .serializers import UserRoutineSerializer, PersonalScheduleSerializer, MonthlyTitleSerializer, UserRoutineCompletionSerializer
@@ -18,6 +19,8 @@ from datetime import datetime
 
 from collections import defaultdict
 from django.db.models import Count
+from django.db.models import Q
+
 
 
 class CalendarViewSet(viewsets.ViewSet):
@@ -406,6 +409,44 @@ class CalendarViewSet(viewsets.ViewSet):
 
     #     return Response(response_data, status=status.HTTP_200_OK)
 
+    # 루틴 / 스케줄이 2개 이상일때, 이것들이 모두 true임에도 반환되지 않음
+    # def check_star(self, request, month=None):
+    #     user = request.user
+        
+    #     # month 문자열을 datetime 객체로 변환
+    #     try:
+    #         month_start = datetime.strptime(month, '%Y-%m')
+    #     except ValueError:
+    #         return Response({"error": "잘못된 월 형식입니다. YYYY-MM 형식을 사용하세요."}, status=400)
+        
+    #     # 해당 월의 마지막 날을 구함
+    #     next_month = month_start.replace(day=28) + timedelta(days=4)  # 28일 이후에 4일을 더하면 다음 달로 넘어감
+    #     month_end = next_month - timedelta(days=next_month.day)  # 그 달의 마지막 날 계산
+        
+    #     # 주어진 월에 해당하는 모든 루틴 완료 및 개인 스케줄 조회
+    #     completions = UserRoutineCompletion.objects.filter(
+    #         user=user,
+    #         date__range=(month_start, month_end),
+    #         completed=True
+    #     ).values('date').annotate(completed_count=Count('id'))
+        
+    #     schedules = PersonalSchedule.objects.filter(
+    #         user=user,
+    #         date__range=(month_start, month_end),
+    #         completed=True
+    #     ).values('date').annotate(completed_count=Count('id'))
+        
+    #     # 모든 루틴과 스케줄이 완료된 날짜의 집합 계산
+    #     completed_dates = set(
+    #         completion['date'] for completion in completions
+    #     ) & set(
+    #         schedule['date'] for schedule in schedules
+    #     )
+        
+    #     # 완료된 날짜 목록 반환
+    #     completed_dates_list = sorted(list(completed_dates))
+        
+    #     return Response({"completed_dates": completed_dates_list})
 
     def check_star(self, request, month=None):
         user = request.user
@@ -419,30 +460,51 @@ class CalendarViewSet(viewsets.ViewSet):
         # 해당 월의 마지막 날을 구함
         next_month = month_start.replace(day=28) + timedelta(days=4)  # 28일 이후에 4일을 더하면 다음 달로 넘어감
         month_end = next_month - timedelta(days=next_month.day)  # 그 달의 마지막 날 계산
-        
-        # 주어진 월에 해당하는 모든 루틴 완료 및 개인 스케줄 조회
-        completions = UserRoutineCompletion.objects.filter(
+
+        # 날짜 범위 내의 모든 루틴과 스케줄을 가져오기
+        routine_dates = UserRoutineCompletion.objects.filter(
             user=user,
-            date__range=(month_start, month_end),
-            completed=True
-        ).values('date').annotate(completed_count=Count('id'))
-        
-        schedules = PersonalSchedule.objects.filter(
-            user=user,
-            date__range=(month_start, month_end),
-            completed=True
-        ).values('date').annotate(completed_count=Count('id'))
-        
-        # 모든 루틴과 스케줄이 완료된 날짜의 집합 계산
-        completed_dates = set(
-            completion['date'] for completion in completions
-        ) & set(
-            schedule['date'] for schedule in schedules
+            date__range=(month_start, month_end)
+        ).values('date').annotate(
+            total_routines=Count('id'),
+            completed_routines=Count('id', filter= models.Q(completed=True))
         )
-        
-        # 완료된 날짜 목록 반환
-        completed_dates_list = sorted(list(completed_dates))
-        
+
+        schedule_dates = PersonalSchedule.objects.filter(
+            user=user,
+            date__range=(month_start, month_end)
+        ).values('date').annotate(
+            total_schedules=Count('id'),
+            completed_schedules=Count('id', filter=models.Q(completed=True))
+        )
+
+        # 완료된 날짜들을 저장할 리스트
+        completed_dates_list = []
+
+        # 각 날짜별 루틴과 스케줄의 완료 상태를 확인
+        for routine_date in routine_dates:
+            date = routine_date['date']
+            total_routines = routine_date['total_routines']
+            completed_routines = routine_date['completed_routines']
+
+            # 해당 날짜에 스케줄도 있는지 확인
+            matching_schedule = next((s for s in schedule_dates if s['date'] == date), None)
+
+            if matching_schedule:
+                total_schedules = matching_schedule['total_schedules']
+                completed_schedules = matching_schedule['completed_schedules']
+
+                # 루틴과 스케줄이 모두 완료되었는지 확인
+                if total_routines == completed_routines and total_schedules == completed_schedules:
+                    completed_dates_list.append(date)
+            else:
+                # 해당 날짜에 스케줄이 없고 루틴만 모두 완료된 경우
+                if total_routines == completed_routines:
+                    completed_dates_list.append(date)
+
+        # 날짜 정렬
+        completed_dates_list.sort()
+
         return Response({"completed_dates": completed_dates_list})
     
 class UpdateRoutineCompletionView(APIView):
