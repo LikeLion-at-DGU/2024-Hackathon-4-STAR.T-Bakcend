@@ -1,7 +1,7 @@
 from rest_framework import viewsets,mixins
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated,AllowAny
-from .serializers import RoutineSerializer,RoutineCategorySerializer
+from .serializers import RoutineSerializer,RoutineCategorySerializer , RoutineDiceSerializer
 from search.serializers import ThemeSerializer
 from .models import Routine , RoutineCategory
 from search.models import Theme
@@ -20,7 +20,7 @@ class RoutineViewSet(viewsets.ModelViewSet):
         if not ran_routine:
             return Response({"detail": "No routines available"}, status=404)
         
-        ran_routine_serializer = RoutineSerializer(ran_routine)
+        ran_routine_serializer = RoutineDiceSerializer(ran_routine)
         return Response(ran_routine_serializer.data)
     
 
