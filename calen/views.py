@@ -157,39 +157,6 @@ class CalendarViewSet(viewsets.ViewSet):
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
-class CompletedDatesView(APIView):
-    def get(self, request, year, month):
-        # 시작일과 종료일 계산
-        start_date, end_date = self.get_start_and_end_dates(year, month)
-        
-        # 월의 모든 날짜를 계산
-        all_dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
-        
-        # 모든 일정과 루틴이 완료된 날짜를 저장할 리스트
-        completed_dates = []
-        
-        for current_date in all_dates:
-            # 해당 날짜의 PersonalSchedule 및 UserRoutineCompletion 조회
-            schedules = PersonalSchedule.objects.filter(date=current_date)
-            routines = UserRoutineCompletion.objects.filter(date=current_date)
-            
-            # 모든 PersonalSchedule이 완료되었는지 확인
-            all_schedules_completed = all(schedule.completed for schedule in schedules)
-            
-            # 모든 UserRoutineCompletion이 완료되었는지 확인
-            all_routines_completed = all(routine.completed for routine in routines)
-            
-            # 두 조건 모두 만족하는 경우에만 추가
-            if all_schedules_completed and all_routines_completed:
-                completed_dates.append(current_date)
-
-        return Response({"completed_dates": completed_dates})
-
-    def get_start_and_end_dates(self, year, month):
-        start_date = date(year, month, 1)
-        end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-        return start_date, end_date
-
     # @action(detail=False, methods=['get'])
     # def check_star(self, request, date=None):
     #     user = self.get_user(request)
@@ -247,3 +214,88 @@ class UpdateRoutineCompletionView(APIView):
             return Response({"status": "Routine completion status updated successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+# class CompletedDatesView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, year, month):
+#         # 시작일과 종료일 계산
+#         start_date, end_date = self.get_start_and_end_dates(year, month)
+        
+#         # 월의 모든 날짜를 계산
+#         all_dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+        
+#         # 모든 일정과 루틴이 완료된 날짜를 저장할 리스트
+#         completed_dates = []
+        
+#         for current_date in all_dates:
+#             # 해당 날짜의 PersonalSchedule 및 UserRoutineCompletion 조회
+#             schedules = PersonalSchedule.objects.filter(date=current_date)
+#             routines = UserRoutineCompletion.objects.filter(date=current_date)
+            
+#             # 모든 PersonalSchedule이 완료되었는지 확인
+#             all_schedules_completed = all(schedule.completed for schedule in schedules)
+            
+#             # 모든 UserRoutineCompletion이 완료되었는지 확인
+#             all_routines_completed = all(routine.completed for routine in routines)
+            
+#             # 두 조건 모두 만족하는 경우에만 추가
+#             if all_schedules_completed and all_routines_completed:
+#                 completed_dates.append(current_date)
+
+#         return Response({"completed_dates": completed_dates})
+
+#     def get_start_and_end_dates(self, year, month):
+#         start_date = date(year, month, 1)
+#         end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+#         return start_date, end_date
+
+class CompletedDatesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, year, month):
+        user = request.user
+        if not user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."}, status=401)
+
+        # 시작일과 종료일 계산
+        start_date, end_date = self.get_start_and_end_dates(year, month)
+        
+        # 월의 모든 날짜를 데이터베이스에서 직접 조회
+        schedules = PersonalSchedule.objects.filter(user=user, date__range=[start_date, end_date])
+        routines = UserRoutineCompletion.objects.filter(user=user, date__range=[start_date, end_date])
+        
+        # 날짜별로 완료 상태를 추적하기 위한 사전
+        schedule_dates = set(schedules.values_list('date', flat=True))
+        routine_dates = set(routines.values_list('date', flat=True))
+        
+        # 완료된 날짜를 추적하기 위한 집합
+        completed_dates = []
+        
+        # 월의 모든 날짜에 대해 체크
+        current_date = start_date
+        while current_date <= end_date:
+            # 해당 날짜의 PersonalSchedule 및 UserRoutineCompletion 조회
+            schedules_today = schedules.filter(date=current_date)
+            routines_today = routines.filter(date=current_date)
+            
+            # 모든 PersonalSchedule이 완료되었는지 확인
+            all_schedules_completed = all(schedule.completed for schedule in schedules_today)
+            
+            # 모든 UserRoutineCompletion이 완료되었는지 확인
+            all_routines_completed = all(routine.completed for routine in routines_today)
+            
+            # 두 조건 모두 만족하는 경우에만 추가
+            if all_schedules_completed and all_routines_completed:
+                completed_dates.append(current_date)
+            
+            # 다음 날짜로 이동
+            current_date += timedelta(days=1)
+
+        return Response({"completed_dates": completed_dates})
+
+    def get_start_and_end_dates(self, year, month):
+        start_date = date(year, month, 1)
+        end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+        return start_date, end_date
