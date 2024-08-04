@@ -143,19 +143,21 @@ class CustomRoutineView(APIView):
                 "status": 400,
                 "message": serializer.errors  # 에러 메시지 반환
             }, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request):
+    
+    
+    
+    def patch(self, request):
         if not request.user.is_authenticated:
             return Response({"message": "인증되지 않은 사용자입니다."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        serializer = CustomRoutineSerializer(data=request.data)
+        serializer = CustomRoutineSerializer(data=request.data, partial=True)
         if serializer.is_valid():
             preferred_routine_categories = serializer.validated_data['preferred_routine_categories']
             user = request.user
-
-            user.preferred_routine_categories.set(preferred_routine_categories)
+            user.preferred_routine_categories.clear() # 기존 값들 제거
+            for category in preferred_routine_categories:
+                if not user.preferred_routine_categories.filter(id=category.id).exists():
+                    user.preferred_routine_categories.add(category)
             user.save()
-
             return Response({
                 "status": 200,
                 "message": "Preferred routine categories updated successfully."
@@ -163,8 +165,9 @@ class CustomRoutineView(APIView):
         else:
             return Response({
                 "status": 400,
-                "message": serializer.errors  # 오류 메시지 반환
+                "message": "Preferred routine categories are required."
             }, status=status.HTTP_400_BAD_REQUEST)
+
     ## 선호 루틴 삭제
     # def delete(self, request):
     # if not request.user.is_authenticated:
