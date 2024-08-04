@@ -509,7 +509,7 @@ class CalendarViewSet(viewsets.ViewSet):
         completed_dates_list.sort()
 
         # 완료된 날짜 리스트 반환
-        return Response({"completed_dates": completed_dates_list})
+        return Response({"completed_days": completed_dates_list})
     
 class UpdateRoutineCompletionView(APIView):
     permission_classes = [IsAuthenticated]
