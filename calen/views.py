@@ -291,7 +291,7 @@ class CalendarViewSet(viewsets.ViewSet):
             completed=True
         )
 
-        # 완료된 날짜를 수집
+        # 루틴이 완료된 날짜를 수집
         completed_dates = defaultdict(set)
         for user_routine in user_routines:
             routine_completed_dates = UserRoutineCompletion.objects.filter(
@@ -310,9 +310,11 @@ class CalendarViewSet(viewsets.ViewSet):
 
         # 모든 루틴과 스케줄이 완료된 날짜 필터링
         all_routines_count = user_routines.count()
+        all_schedules_count = personal_schedules.values('date').distinct().count()  # 사용자가 가진 모든 스케줄의 개수
+        
         fully_completed_dates = [
-            date for date, routines in completed_dates.items()
-            if len(routines) == all_routines_count + (1 if 'schedule' in routines else 0)
+            date for date, items in completed_dates.items()
+            if len(items) == all_routines_count + all_schedules_count
         ]
 
         # 결과를 문자열 형식으로 변환
