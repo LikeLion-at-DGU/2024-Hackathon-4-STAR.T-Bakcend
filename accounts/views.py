@@ -22,6 +22,7 @@ from .models import User
 from rank.models import CelebScore
 from rank.serializers import CelebScoreSerializer
 from routine.serializers import RoutineCategorySerializer
+from django.core.exceptions import ObjectDoesNotExist
 
 
 
@@ -59,35 +60,37 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
         return
 
     User = get_user_model()
-    users = User.objects.filter(email=email_address)
-    print("user:",users,"email:",email_address,"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-    if users:
-        perform_login(request, users[0], email_verification='optional')
+    try:
+        user = User.objects.get(email=email_address)
+    except ObjectDoesNotExist:
+        user = User.objects.create(email=email_address, username=email_address.split('@')[0])
+        user.save()
 
-        refresh = RefreshToken.for_user(users[0])
-        access_token = str(refresh.access_token)
-        refresh_token = str(refresh)
+    perform_login(request, user, email_verification='optional')
 
-        response = redirect(settings.LOGIN_REDIRECT_URL)
-        response.set_cookie(
-            key='access_token',
-            value=access_token,
-            domain='likelion-start.site',
-            httponly=True,
-            secure=False,
-            samesite='Lax'
-        )
-        response.set_cookie(
-            key='refresh_token',
-            value=refresh_token,
-            domain='likelion-start.site',
-            httponly=True,
-            secure=False,
-            samesite='Lax'
-        )
+    refresh = RefreshToken.for_user(user)
+    access_token = str(refresh.access_token)
+    refresh_token = str(refresh)
 
-        raise ImmediateHttpResponse(response)
-    return
+    response = redirect(settings.LOGIN_REDIRECT_URL)
+    response.set_cookie(
+        key='access_token',
+        value=access_token,
+        domain='likelion-start.site',
+        httponly=True,
+        secure=False,
+        samesite='Lax'
+    )
+    response.set_cookie(
+        key='refresh_token',
+        value=refresh_token,
+        domain='likelion-start.site',
+        httponly=True,
+        secure=False,
+        samesite='Lax'
+    )
+
+    raise ImmediateHttpResponse(response)
     # else:
     # # Here, the user is not registered yet. We handle the pre-signup logic.
     # # You might want to redirect to a page where the user can complete the registration.
