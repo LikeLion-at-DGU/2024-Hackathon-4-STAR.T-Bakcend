@@ -49,7 +49,7 @@ class MainPageViewSet(viewsets.ViewSet):
         latest_routines = Routine.objects.order_by('-create_at')[:10]
         themes = Theme.objects.all()
         challenges = UserRoutine.objects.filter(user=user).distinct()
-    
+
 
         challenge_data = []
         for challenge in challenges:
