@@ -32,17 +32,17 @@ class CalendarViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def daily(self, request, date=None):
-        date_obj = parse_date(date)
-        if not date_obj:
+        target_date = parse_date(date)  # 변수명 변경
+        if not target_date:
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 개인 일정 가져오기
-        schedules = PersonalSchedule.objects.filter(user=request.user, date=date_obj)
+        schedules = PersonalSchedule.objects.filter(user=request.user, date=target_date)
         schedule_serializer = PersonalScheduleSerializer(schedules, many=True)
 
         # 루틴 가져오기
-        user_routines = UserRoutine.objects.filter(user=request.user, start_date__lte=date_obj, end_date__gte=date_obj)
-        routine_serializer = UserRoutineSerializer(user_routines, many=True, context={'request': request, 'selected_date': date_obj})
+        user_routines = UserRoutine.objects.filter(user=request.user, start_date__lte=target_date, end_date__gte=target_date)
+        routine_serializer = UserRoutineSerializer(user_routines, many=True, context={'request': request, 'selected_date': target_date})
 
         data = {
                 'schedules': schedule_serializer.data,
@@ -53,17 +53,17 @@ class CalendarViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def create_schedule(self, request, date=None):
-        date_obj = parse_date(date)
-        if not date_obj:
+        target_date = parse_date(date)  # 변수명 변경
+        if not target_date:
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 이전 날짜에 대해서는 생성 불가
-        if date_obj < date.today():
+        if target_date < date.today():
             return Response({"detail": "Cannot create schedule for past dates."}, status=status.HTTP_400_BAD_REQUEST)
 
         data = request.data
         data['user'] = request.user.id
-        data['date'] = date_obj
+        data['date'] = target_date
 
         serializer = PersonalScheduleSerializer(data=data)
         if serializer.is_valid():
@@ -74,12 +74,12 @@ class CalendarViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['patch'])
     def update_schedule(self, request, date=None):
         # 날짜 파싱
-        date_obj = parse_date(date)
-        if not date_obj:
+        target_date = parse_date(date)  # 변수명 변경
+        if not target_date:
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 이전 날짜에 대해서는 수정 불가
-        if date_obj < date.today():
+        if target_date < date.today():
             return Response({"detail": "Cannot update schedule for past dates."}, status=status.HTTP_400_BAD_REQUEST)
 
         # 요청 본문에서 필수 ID와 선택적 필드 가져오기
@@ -88,7 +88,7 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response({"detail": "ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 해당 날짜와 사용자에 대한 PersonalSchedule 필터링
-        schedules = PersonalSchedule.objects.filter(user=request.user, date=date_obj)
+        schedules = PersonalSchedule.objects.filter(user=request.user, date=target_date)
 
         # ID에 해당하는 스케줄 찾기
         try:
@@ -262,4 +262,3 @@ class UpdateRoutineCompletionView(APIView):
             return Response({"status": "Routine completion status updated successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
