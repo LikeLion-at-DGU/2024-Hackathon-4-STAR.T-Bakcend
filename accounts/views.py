@@ -92,12 +92,12 @@ def home(request):
     return render(request, 'home.html')
 
 class UserViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [AllowAny]  #IsAuthenticated
 
     def list(self, request):
         user = request.user
-        if not user.is_authenticated:
-            return Response({'error': 'User not authenticated'}, status=401)
+    # if not user.is_authenticated:
+    #    return Response({'error': 'User not authenticated'}, status=401)
         
         users = User.objects.filter(email=user.email)
         serializer = UserSerializer(users, many=True)
@@ -145,11 +145,11 @@ class CustomRoutineView(APIView):
     #         }, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response({"message": "인증되지 않은 사용자입니다."}, status=status.HTTP_401_UNAUTHORIZED)
+        # if not request.user.is_authenticated:
+        #     return Response({"message": "인증되지 않은 사용자입니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # 디버깅을 위한 요청 데이터 로깅
-        print("Request Data:", request.data)  # 프로덕션 환경에서는 적절한 로깅으로 대체하세요.
+        # # 디버깅을 위한 요청 데이터 로깅
+        # print("Request Data:", request.data)  # 프로덕션 환경에서는 적절한 로깅으로 대체하세요.
 
         serializer = CustomRoutineSerializer(data=request.data)
         if serializer.is_valid():
