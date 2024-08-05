@@ -63,9 +63,9 @@ class SearchViewSet(viewsets.ViewSet):
             })
     
         return Response({
-            "celeb": celeb_data,
-            "routines": routine_data,
-            "theme": theme_data,
+            "인물": celeb_data,
+            "루틴": routine_data,
+            "테마": theme_data,
         })
     
 
