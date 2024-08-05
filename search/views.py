@@ -78,7 +78,7 @@ class ThemeDetailViewSet(viewsets.ViewSet):
         except Theme.DoesNotExist:
             return Response({"detail": "Theme not found."}, status=404)
         
-        theme_serializer = ThemeSerializer(theme)
+        #theme_serializer = ThemeSerializer(theme)
         routines = Routine.objects.filter(theme=theme)
         routine_serializer = RoutineSerializer(routines, many=True)
         return Response({

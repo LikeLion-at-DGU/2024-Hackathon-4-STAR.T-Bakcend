@@ -8,7 +8,7 @@ class ThemeSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Theme
-        fields = ['id', 'title', 'content', 'image']
+        fields = ['id', 'title', 'sub_title','content', 'image']
 
 class CelebritySerializer(serializers.ModelSerializer):
     class Meta:

@@ -10,6 +10,7 @@ from calen.models import UserRoutine
 from calen.serializers import UserRoutineSerializer
 from accounts.models import User
 from accounts.serializers import NicknameSerializer
+import random
 
 class RoutineViewSet(viewsets.ModelViewSet):
     queryset = Routine.objects.all()
@@ -47,8 +48,8 @@ class MainPageViewSet(viewsets.ViewSet):
         hot_routines = Routine.objects.order_by('-popular')[:10]
         latest_routines = Routine.objects.order_by('-create_at')[:10]
         themes = Theme.objects.all()
-        challenges = UserRoutine.objects.filter(user=user)
-
+        challenges = UserRoutine.objects.filter(user=user).distinct()
+    
 
         challenge_data = []
         for challenge in challenges:
@@ -66,11 +67,10 @@ class MainPageViewSet(viewsets.ViewSet):
 
         theme_data = []
         for theme in themes:
-            routines_serializer = RoutineSerializer(theme.routine_set.all(), many=True)
             theme_data.append({
                 "id": theme.id,
                 "title": theme.title,
-                "routine_title": [routine['title'] for routine in routines_serializer.data],
+                "routine_title": [theme.sub_title],
                 "image": theme.image,
                 "url": theme.id
             })
@@ -97,6 +97,13 @@ class MainPageViewSet(viewsets.ViewSet):
         new_update_data = create_routine_data(latest_routines)
         user_routine_data = create_routine_data(user_routines)
         hot_routine_data = create_routine_data(hot_routines)
+
+        random.shuffle(new_update_data)
+        random.shuffle(user_routine_data)
+        random.shuffle(hot_routine_data)
+        random.shuffle(challenge_data)
+
+
         return Response({
             "theme": theme_data,
             "도전중인 챌린지" : challenge_data,
