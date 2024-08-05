@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date as dt_date, timedelta  # 여기서 date를 dt_date로 불러옵니다.
 from rest_framework.decorators import action
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -32,7 +32,7 @@ class CalendarViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def daily(self, request, date=None):
-        target_date = parse_date(date)  # 변수명 변경
+        target_date = parse_date(date)
         if not target_date:
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -53,12 +53,12 @@ class CalendarViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def create_schedule(self, request, date=None):
-        target_date = parse_date(date)  # 변수명 변경
+        target_date = parse_date(date)
         if not target_date:
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 이전 날짜에 대해서는 생성 불가
-        if target_date < date.today():
+        if target_date < dt_date.today():  # 여기서 dt_date를 사용하여 명확하게 합니다.
             return Response({"detail": "Cannot create schedule for past dates."}, status=status.HTTP_400_BAD_REQUEST)
 
         data = request.data
@@ -74,12 +74,12 @@ class CalendarViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['patch'])
     def update_schedule(self, request, date=None):
         # 날짜 파싱
-        target_date = parse_date(date)  # 변수명 변경
+        target_date = parse_date(date)  # 여기서도 date 대신 target_date 사용
         if not target_date:
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 이전 날짜에 대해서는 수정 불가
-        if target_date < date.today():
+        if target_date < dt_date.today():  # 여기도 마찬가지로 dt_date 사용
             return Response({"detail": "Cannot update schedule for past dates."}, status=status.HTTP_400_BAD_REQUEST)
 
         # 요청 본문에서 필수 ID와 선택적 필드 가져오기
@@ -143,7 +143,7 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response({'error': 'End date must be after start date.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # 시작일과 종료일이 오늘보다 이전이면 에러 반환
-        if start_date < date.today() or end_date < date.today():
+        if start_date < dt_date.today() or end_date < dt_date.today():
             return Response({'error': 'Cannot add routine for past dates.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # 동일한 날짜에 동일한 루틴이 이미 존재하는지 확인
@@ -243,7 +243,7 @@ class UpdateRoutineCompletionView(APIView):
             date_obj = datetime.strptime(date, '%Y-%m-%d').date()
 
             # 이전 날짜에 대해서는 수정 불가
-            if date_obj < date.today():
+            if date_obj < dt_date.today():
                 return Response({"detail": "Cannot update routine completion for past dates."}, status=status.HTTP_400_BAD_REQUEST)
 
             routine_id = request.data.get('routine_id')
