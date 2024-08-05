@@ -52,11 +52,11 @@ class MainPageViewSet(viewsets.ViewSet):
 
         challenge_set = UserRoutine.objects.filter(user=user)
         challenge_set = challenge_set.annotate(routine_id=F('routine_id'))
-        challenge_set = challenge_set.values('routine_id').distinct()
+        challenge_set = challenge_set.values('annotated_routine_id').distinct()
 
         subquery = UserRoutine.objects.filter(
             id__in=Subquery(
-                challenge_set.values('id')
+                challenge_set.values('annotated_routine_id')
             )
         )
 
