@@ -171,12 +171,6 @@ class CalendarViewSet(viewsets.ViewSet):
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
-    # 어케 짤까
-    # 날짜 파싱 후 월 날짜들 계산
-    # 이 범위의 모든 루틴과 스케쥴 가져오기
-    # 각 날짜별로 루틴과 스케쥴 완료상태 확인하고
-    # for 문으로 돌려서 둘다 완료인 것만 리스트에 추가 후 정렬
-
     @action(detail=False, methods=['get'])
     def check_star(self, request, month=None):
         user = self.get_user(request)
