@@ -212,7 +212,7 @@ class CustomRoutineView(APIView):
 
 
 class UpdateNicknameView(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = NicknameSerializer(data=request.data)
