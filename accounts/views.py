@@ -86,6 +86,15 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
         )
 
         raise ImmediateHttpResponse(response)
+    
+    else:
+    # Here, the user is not registered yet. We handle the pre-signup logic.
+    # You might want to redirect to a page where the user can complete the registration.
+        temp_user = sociallogin.user
+        request.session['socialaccount_sociallogin'] = sociallogin.serialize()
+
+        response = redirect('https://www.likelion-start.site/signup')  # Change this to your actual signup completion URL
+        raise ImmediateHttpResponse(response)
     return
 
 def home(request):
