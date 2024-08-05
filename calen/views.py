@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.utils.dateparse import parse_date
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
+from django.db import models
 
 from .models import UserRoutine, PersonalSchedule, MonthlyTitle, UserRoutineCompletion
 from .serializers import UserRoutineSerializer, PersonalScheduleSerializer, MonthlyTitleSerializer, UserRoutineCompletionSerializer
@@ -17,6 +18,7 @@ from rest_framework.views import APIView
 from datetime import datetime
 
 from collections import defaultdict
+from django.db.models import Count
 
 
 class CalendarViewSet(viewsets.ViewSet):
@@ -55,6 +57,10 @@ class CalendarViewSet(viewsets.ViewSet):
         if not date_obj:
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # 이전 날짜에 대해서는 생성 불가
+        if date_obj < date.today():
+            return Response({"detail": "Cannot create schedule for past dates."}, status=status.HTTP_400_BAD_REQUEST)
+
         data = request.data
         data['user'] = request.user.id
         data['date'] = date_obj
@@ -71,6 +77,10 @@ class CalendarViewSet(viewsets.ViewSet):
         date_obj = parse_date(date)
         if not date_obj:
             return Response({"detail": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 이전 날짜에 대해서는 수정 불가
+        if date_obj < date.today():
+            return Response({"detail": "Cannot update schedule for past dates."}, status=status.HTTP_400_BAD_REQUEST)
 
         # 요청 본문에서 필수 ID와 선택적 필드 가져오기
         schedule_id = request.data.get('id')
@@ -132,8 +142,9 @@ class CalendarViewSet(viewsets.ViewSet):
         if start_date > end_date:
             return Response({'error': 'End date must be after start date.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if end_date < date.today():
-            return Response({'error': 'End date cannot be in the past.'}, status=status.HTTP_400_BAD_REQUEST)
+        # 시작일과 종료일이 오늘보다 이전이면 에러 반환
+        if start_date < date.today() or end_date < date.today():
+            return Response({'error': 'Cannot add routine for past dates.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # 동일한 날짜에 동일한 루틴이 이미 존재하는지 확인
         existing_routine = UserRoutine.objects.filter(
@@ -159,81 +170,6 @@ class CalendarViewSet(viewsets.ViewSet):
         }
 
         return Response(response_data, status=status.HTTP_201_CREATED)
-    
-    # # 루틴과 스케쥴에 대해서 완료된 날짜만 리스트 반환 / 문제: 스케쥴만 있을 때 반영되지 않음 (필터링 순서 때문에)
-    # def check_star(self, request, month=None):
-    #     user = self.get_user(request)
-
-    #     if user is None:
-    #         return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
-
-    #     if not month:
-    #         return Response({'error': 'Month parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     try:
-    #         # 월을 'YYYY-MM' 형식으로 파싱
-    #         year, month = month.split('-')
-    #         year = int(year)
-    #         month = int(month)
-    #         if month < 1 or month > 12:
-    #             raise ValueError("Invalid month")
-            
-    #         start_date = datetime(year, month, 1)
-    #         end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-    #     except (ValueError, TypeError):
-    #         return Response({'error': 'Invalid month format'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     # 해당 월의 모든 루틴을 가져옴
-    #     user_routines = UserRoutine.objects.filter(
-    #         user=user,
-    #         start_date__lte=end_date,
-    #         end_date__gte=start_date
-    #     )
-
-    #     # 해당 월의 모든 스케줄을 가져옴
-    #     personal_schedules = PersonalSchedule.objects.filter(
-    #         user=user,
-    #         date__range=[start_date, end_date],
-    #         completed=True
-    #     )
-
-    #     # 루틴이 완료된 날짜를 수집
-    #     completed_dates = defaultdict(set)
-    #     for user_routine in user_routines:
-    #         routine_completed_dates = UserRoutineCompletion.objects.filter(
-    #             user=user,
-    #             routine=user_routine,
-    #             date__range=[start_date, end_date],
-    #             completed=True
-    #         ).values_list('date', flat=True)
-    #         for date in routine_completed_dates:
-    #             completed_dates[date].add(user_routine.id)
-
-    #     # 모든 루틴이 완료된 날짜 필터링
-    #     all_routines_count = user_routines.count()
-    #     fully_completed_routine_dates = [
-    #         date for date, items in completed_dates.items()
-    #         if len(items) == all_routines_count
-    #     ]
-
-    #     # 스케줄이 완료된 날짜를 수집
-    #     schedule_completed_dates = set(personal_schedules.values_list('date', flat=True))
-
-    #     # 루틴과 스케줄이 모두 완료된 날짜 필터링
-    #     fully_completed_dates = [
-    #         date for date in fully_completed_routine_dates
-    #         if date in schedule_completed_dates
-    #     ]
-
-    #     # 결과를 문자열 형식으로 변환
-    #     completed_days = sorted(date.strftime('%Y-%m-%d') for date in fully_completed_dates)
-
-    #     response_data = {
-    #         'completed_days': completed_days
-    #     }
-
-    #     return Response(response_data, status=status.HTTP_200_OK)
-
 
     @action(detail=False, methods=['get'])
     def check_star(self, request, month=None):
@@ -258,61 +194,45 @@ class CalendarViewSet(viewsets.ViewSet):
         except (ValueError, TypeError):
             return Response({'error': 'Invalid month format'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 해당 월의 모든 루틴을 가져옴
-        user_routines = UserRoutine.objects.filter(
+        # 날짜 범위 내의 모든 루틴과 스케줄 가져오기
+        completions = UserRoutineCompletion.objects.filter(
             user=user,
-            start_date__lte=end_date,
-            end_date__gte=start_date
+            date__range=(start_date, end_date)
+        ).values('date').annotate(
+            total_routines=Count('id'),
+            completed_routines=Count('id', filter=Q(completed=True))
         )
 
-        # 해당 월의 모든 스케줄을 가져옴
         personal_schedules = PersonalSchedule.objects.filter(
             user=user,
             date__range=[start_date, end_date]
+        ).values('date').annotate(
+            total_schedules=Count('id'),
+            completed_schedules=Count('id', filter=Q(completed=True))
         )
 
-        # 1. 루틴이 완료된 날짜 수집
-        completed_dates = defaultdict(set)
-        for user_routine in user_routines:
-            routine_completed_dates = UserRoutineCompletion.objects.filter(
-                user=user,
-                routine=user_routine,
-                date__range=[start_date, end_date],
-                completed=True
-            ).values_list('date', flat=True)
-            for date in routine_completed_dates:
-                completed_dates[date].add(user_routine.id)
+        # 각 날짜별로 루틴과 스케줄의 완료 상태를 확인
+        completed_dates_list = []
+        all_dates = set([entry['date'] for entry in completions] + [entry['date'] for entry in personal_schedules])
 
-        all_routines_count = user_routines.count()
-        fully_completed_routine_dates = [
-            date for date, items in completed_dates.items()
-            if len(items) == all_routines_count
-        ]
+        for date in all_dates:
+            # 루틴 완료 여부 확인
+            routines_for_date = next((entry for entry in completions if entry['date'] == date), None)
+            routines_completed = (routines_for_date is None) or (routines_for_date['total_routines'] == routines_for_date['completed_routines'])
 
-        # 2. 스케줄이 완료된 날짜 수집
-        completed_schedule_dates = set(personal_schedules.filter(completed=True).values_list('date', flat=True))
-        
-        # 3. 루틴과 스케줄 모두 완료된 날짜 필터링
-        fully_completed_dates = [
-            date for date in fully_completed_routine_dates
-            if date in completed_schedule_dates
-        ]
+            # 스케줄 완료 여부 확인
+            schedules_for_date = next((entry for entry in personal_schedules if entry['date'] == date), None)
+            schedules_completed = (schedules_for_date is None) or (schedules_for_date['total_schedules'] == schedules_for_date['completed_schedules'])
 
-        # 4. 스케줄만 있는 날짜에 대해 스케줄이 모두 완료된 경우를 확인
-        all_schedules_dates = set(personal_schedules.values_list('date', flat=True))
-        fully_completed_schedule_dates = [
-            date for date in all_schedules_dates
-            if all(personal_schedules.filter(date=date).values_list('completed', flat=True))
-        ]
-        
-        # 결과를 문자열 형식으로 변환
-        completed_days = sorted(date.strftime('%Y-%m-%d') for date in fully_completed_dates + fully_completed_schedule_dates)
+            # 루틴과 스케줄이 모두 완료된 경우 해당 날짜를 리스트에 추가
+            if routines_completed and schedules_completed:
+                completed_dates_list.append(date)
 
-        response_data = {
-            'completed_days': completed_days
-        }
+        # 날짜 정렬
+        completed_dates_list.sort()
 
-        return Response(response_data, status=status.HTTP_200_OK)
+        # 완료된 날짜 리스트 반환
+        return Response({"completed_days": completed_dates_list})
     
 class UpdateRoutineCompletionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -321,6 +241,11 @@ class UpdateRoutineCompletionView(APIView):
         try:
             user = request.user
             date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+
+            # 이전 날짜에 대해서는 수정 불가
+            if date_obj < date.today():
+                return Response({"detail": "Cannot update routine completion for past dates."}, status=status.HTTP_400_BAD_REQUEST)
+
             routine_id = request.data.get('routine_id')
             completed = request.data.get('completed')
 
@@ -337,3 +262,4 @@ class UpdateRoutineCompletionView(APIView):
             return Response({"status": "Routine completion status updated successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
