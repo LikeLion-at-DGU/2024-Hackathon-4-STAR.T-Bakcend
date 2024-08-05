@@ -71,6 +71,18 @@ class CalendarViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def check_today_completed(self, user, target_date):
+        # Check all routines for the date
+        routines = UserRoutineCompletion.objects.filter(user=user, date=target_date)
+        routines_completed = all(routine.completed for routine in routines)
+
+        # Check all schedules for the date
+        schedules = PersonalSchedule.objects.filter(user=user, date=target_date)
+        schedules_completed = all(schedule.completed for schedule in schedules)
+
+        # Determine if all routines and schedules are completed
+        return routines_completed and schedules_completed    
+
     @action(detail=False, methods=['patch'])
     def update_schedule(self, request, date=None):
         # 날짜 파싱
@@ -109,7 +121,16 @@ class CalendarViewSet(viewsets.ViewSet):
         serializer = PersonalScheduleSerializer(schedule, data=updated_data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+
+            today_completed = self.check_today_completed(request.user, target_date)
+
+            return Response(
+                {
+                    "schedule": serializer.data,
+                    "today_completed": today_completed,
+                },
+                status=status.HTTP_200_OK
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     
@@ -259,6 +280,26 @@ class UpdateRoutineCompletionView(APIView):
             except UserRoutineCompletion.DoesNotExist:
                 return Response({"detail": "UserRoutineCompletion not found."}, status=status.HTTP_404_NOT_FOUND)
             
-            return Response({"status": "Routine completion status updated successfully"}, status=status.HTTP_200_OK)
+            today_completed = self.check_today_completed(user, date_obj)
+
+            return Response(
+                {
+                    "status": "Routine completion status updated successfully",
+                    "today_completed": today_completed,
+                },
+                status=status.HTTP_200_OK
+            )
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def check_today_completed(self, user, target_date):
+        # 해당 날짜의 모든 루틴 조회
+        routines = UserRoutineCompletion.objects.filter(user=user, date=target_date)
+        routines_completed = all(routine.completed for routine in routines)
+
+        # 해당 날짜의 모든 스케줄 조회
+        schedules = PersonalSchedule.objects.filter(user=user, date=target_date)
+        schedules_completed = all(schedule.completed for schedule in schedules)
+
+        # 모든 루틴과 스케줄이 완료되었는지 확인
+        return routines_completed and schedules_completed
