@@ -11,6 +11,7 @@ from calen.serializers import UserRoutineSerializer
 from accounts.models import User
 from accounts.serializers import NicknameSerializer
 import random
+from django.db.models import F, Subquery
 
 class RoutineViewSet(viewsets.ModelViewSet):
     queryset = Routine.objects.all()
@@ -48,9 +49,18 @@ class MainPageViewSet(viewsets.ViewSet):
         hot_routines = Routine.objects.order_by('-popular')[:10]
         latest_routines = Routine.objects.order_by('-create_at')[:10]
         themes = Theme.objects.all()
-        challenges = UserRoutine.objects.filter(user=user).distinct()
 
+        challenge_set = UserRoutine.objects.filter(user=user)
+        challenge_set = challenge_set.annotate(routine_id=F('routine_id'))
+        challenge_set = challenge_set.values('routine_id').distinct()
 
+        subquery = UserRoutine.objects.filter(
+            id__in=Subquery(
+                challenge_set.values('id')
+            )
+        )
+
+        challenges = subquery.distinct()
         challenge_data = []
         for challenge in challenges:
             routine = challenge.routine
