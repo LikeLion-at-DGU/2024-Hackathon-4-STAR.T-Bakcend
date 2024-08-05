@@ -211,19 +211,62 @@ class CustomRoutineView(APIView):
     #     }, status=status.HTTP_200_OK)
 
 
+# class UpdateNicknameView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = NicknameSerializer(data=request.data)
+        
+#         if serializer.is_valid():
+#             user = request.user
+#             user.nickname = serializer.validated_data['nickname']
+#             user.save()
+#             return Response({"status": 200, "message": "정상적으로 등록되었습니다."}, status=status.HTTP_200_OK)
+        
+#         return Response({"status": 400, "message": "닉네임을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+
 class UpdateNicknameView(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = NicknameSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             user = request.user
             user.nickname = serializer.validated_data['nickname']
             user.save()
-            return Response({"status": 200, "message": "정상적으로 등록되었습니다."}, status=status.HTTP_200_OK)
-        
+
+            # JWT 토큰 생성
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
+
+            response = Response({"status": 200, "message": "정상적으로 등록되었습니다."}, status=status.HTTP_200_OK)
+            
+            # 쿠키에 토큰 설정
+            response.set_cookie(
+            key='access_token',
+            value=access_token,
+            domain='likelion-start.site',
+            httponly=True,
+            secure=False,
+            samesite='Lax'
+            )
+            response.set_cookie(
+            key='refresh_token',
+            value=refresh_token,
+            domain='likelion-start.site',
+            httponly=True,
+            secure=False,
+            samesite='Lax'
+            )
+
+            return response
+
         return Response({"status": 400, "message": "닉네임을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 # 사용자 프로필 정보를 가져오는 뷰
