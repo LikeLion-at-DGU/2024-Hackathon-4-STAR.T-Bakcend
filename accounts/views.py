@@ -60,6 +60,7 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
 
     User = get_user_model()
     users = User.objects.filter(email=email_address)
+    print("user:",users,"email:",email_address,"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     if users:
         perform_login(request, users[0], email_verification='optional')
 
@@ -86,22 +87,22 @@ def link_to_local_user(sender, request, sociallogin, **kwargs):
         )
 
         raise ImmediateHttpResponse(response)
-    
-    else:
-    # Here, the user is not registered yet. We handle the pre-signup logic.
-    # You might want to redirect to a page where the user can complete the registration.
-        temp_user = sociallogin.user
-        request.session['socialaccount_sociallogin'] = sociallogin.serialize()
-
-        response = redirect('https://www.likelion-start.site/signup')  # Change this to your actual signup completion URL
-        raise ImmediateHttpResponse(response)
     return
+    # else:
+    # # Here, the user is not registered yet. We handle the pre-signup logic.
+    # # You might want to redirect to a page where the user can complete the registration.
+    #     temp_user = sociallogin.user
+    #     request.session['socialaccount_sociallogin'] = sociallogin.serialize()
+
+    #     response = redirect('https://www.likelion-start.site/signup')  # Change this to your actual signup completion URL
+    #     raise ImmediateHttpResponse(response)
+    
 
 def home(request):
     return render(request, 'home.html')
 
 class UserViewSet(viewsets.ViewSet):
-    permission_classes = [AllowAny]  #IsAuthenticated
+    permission_classes = [IsAuthenticated]  #IsAuthenticated
 
     def list(self, request):
         user = request.user
@@ -142,7 +143,7 @@ class CustomRoutineView(APIView):
         if serializer.is_valid():
             preferred_routine_categories = serializer.validated_data['preferred_routine_categories']
             user = request.user  # 현재 사용자 가져오기
-
+            
             #사용자가 올바르게 인증되었는지 확인
             if not user:
                 return Response({"message": "No user available for testing."}, status=status.HTTP_400_BAD_REQUEST)
