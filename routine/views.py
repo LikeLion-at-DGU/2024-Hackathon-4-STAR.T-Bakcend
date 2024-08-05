@@ -50,17 +50,8 @@ class MainPageViewSet(viewsets.ViewSet):
         latest_routines = Routine.objects.order_by('-create_at')[:10]
         themes = Theme.objects.all()
 
-        challenge_set = UserRoutine.objects.filter(user=user)
-        challenge_set = challenge_set.annotate(routine_id=F('routine_id'))
-        challenge_set = challenge_set.values('annotated_routine_id').distinct()
+        challenges = UserRoutine.objects.filter(user=user).distinct()
 
-        subquery = UserRoutine.objects.filter(
-            id__in=Subquery(
-                challenge_set.values('annotated_routine_id')
-            )
-        )
-
-        challenges = subquery.distinct()
         challenge_data = []
         for challenge in challenges:
             routine = challenge.routine
