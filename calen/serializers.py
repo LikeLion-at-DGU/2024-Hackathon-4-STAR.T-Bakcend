@@ -11,6 +11,7 @@ class UserRoutineSerializer(serializers.ModelSerializer):
     completed = serializers.SerializerMethodField()
     popular = serializers.IntegerField(source='routine.popular', read_only=True) 
     celebrity_id = serializers.IntegerField(source='routine.celebrity.id', read_only=True)  # 셀럽 ID 필드 추가
+    celebrity_name = serializers.CharField(source='routine.celebrity.name', read_only=True)  # 셀럽 이름 필드 추가
 
     class Meta:
         model = UserRoutine
