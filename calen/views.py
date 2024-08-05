@@ -30,6 +30,18 @@ class CalendarViewSet(viewsets.ViewSet):
             return None
         return user
     
+    def check_today_completed(self, user, target_date):
+        # Check all routines for the date
+        routines = UserRoutineCompletion.objects.filter(user=user, date=target_date)
+        routines_completed = all(routine.completed for routine in routines)
+
+        # Check all schedules for the date
+        schedules = PersonalSchedule.objects.filter(user=user, date=target_date)
+        schedules_completed = all(schedule.completed for schedule in schedules)
+
+        # Determine if all routines and schedules are completed
+        return routines_completed and schedules_completed   
+
     @action(detail=False, methods=['get'])
     def daily(self, request, date=None):
         target_date = parse_date(date)
@@ -44,9 +56,12 @@ class CalendarViewSet(viewsets.ViewSet):
         user_routines = UserRoutine.objects.filter(user=request.user, start_date__lte=target_date, end_date__gte=target_date)
         routine_serializer = UserRoutineSerializer(user_routines, many=True, context={'request': request, 'selected_date': target_date})
 
+        today_completed = self.check_today_completed(request.user, target_date)
+
         data = {
                 'schedules': schedule_serializer.data,
-                'routines': routine_serializer.data
+                'routines': routine_serializer.data,
+                "today_completed": today_completed,
             }
 
         return Response(data, status=status.HTTP_200_OK)
@@ -69,19 +84,7 @@ class CalendarViewSet(viewsets.ViewSet):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def check_today_completed(self, user, target_date):
-        # Check all routines for the date
-        routines = UserRoutineCompletion.objects.filter(user=user, date=target_date)
-        routines_completed = all(routine.completed for routine in routines)
-
-        # Check all schedules for the date
-        schedules = PersonalSchedule.objects.filter(user=user, date=target_date)
-        schedules_completed = all(schedule.completed for schedule in schedules)
-
-        # Determine if all routines and schedules are completed
-        return routines_completed and schedules_completed    
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
     @action(detail=False, methods=['patch'])
     def update_schedule(self, request, date=None):
