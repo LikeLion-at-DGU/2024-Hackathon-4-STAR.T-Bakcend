@@ -122,28 +122,69 @@ class CustomRoutineView(APIView):
         else:
             return Response({"message": "User prefer routine categories do not exist."}, status=status.HTTP_404_NOT_FOUND)
 
+    # def post(self, request):
+    #     if not request.user.is_authenticated:
+    #         return Response({"message": "인증되지 않은 사용자입니다."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+    #     serializer = CustomRoutineSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         preferred_routine_categories = serializer.validated_data['preferred_routine_categories']
+    #         user = request.user  # 현재 사용자 가져오기
+    #         if not user:
+    #             return Response({"message": "No user available for testing."}, status=status.HTTP_400_BAD_REQUEST)
+    #         user.preferred_routine_categories.set(preferred_routine_categories)
+    #         user.save()
+    #         return Response({
+    #             "status": 200,
+    #             "message": "Preferred routine categories updated successfully."
+    #         }, status=status.HTTP_200_OK)
+    #     else:
+    #         return Response({
+    #             "status": 400,
+    #             "message": serializer.errors  # 에러 메시지 반환
+    #         }, status=status.HTTP_400_BAD_REQUEST)
+
     def post(self, request):
         if not request.user.is_authenticated:
             return Response({"message": "인증되지 않은 사용자입니다."}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
+        # 디버깅을 위한 요청 데이터 로깅
+        print("Request Data:", request.data)  # 프로덕션 환경에서는 적절한 로깅으로 대체하세요.
+
         serializer = CustomRoutineSerializer(data=request.data)
         if serializer.is_valid():
             preferred_routine_categories = serializer.validated_data['preferred_routine_categories']
             user = request.user  # 현재 사용자 가져오기
+
+            # 사용자가 올바르게 인증되었는지 확인
             if not user:
                 return Response({"message": "No user available for testing."}, status=status.HTTP_400_BAD_REQUEST)
-            user.preferred_routine_categories.set(preferred_routine_categories)
-            user.save()
-            return Response({
-                "status": 200,
-                "message": "Preferred routine categories updated successfully."
-            }, status=status.HTTP_200_OK)
+
+            try:
+                # 사용자의 선호 카테고리 업데이트
+                user.preferred_routine_categories.set(preferred_routine_categories)
+                user.save()
+
+                return Response({
+                    "status": 200,
+                    "message": "Preferred routine categories updated successfully."
+                }, status=status.HTTP_200_OK)
+
+            except Exception as e:
+                # 업데이트 중 발생한 예외를 로깅
+                print("Error updating user preferences:", str(e))
+                return Response({
+                    "status": 500,
+                    "message": "An error occurred while updating preferences."
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         else:
+            # Serializer 에러 로깅
+            print("Serializer Errors:", serializer.errors)  # 프로덕션 환경에서는 적절한 로깅으로 대체하세요.
             return Response({
                 "status": 400,
                 "message": serializer.errors  # 에러 메시지 반환
             }, status=status.HTTP_400_BAD_REQUEST)
-    
     
     
     def patch(self, request):
