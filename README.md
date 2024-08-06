@@ -6,7 +6,7 @@
 > 갓생의 시작은 STAR.T와 START 🚩
 
 ### Service Introduction
- ***"갓생"***
+ ***"For The Better Life"***
  
  자기관리가 중요시되는 현대사회에서, 우리들은 보다 더 나은 나를 위해 끊임없이 노력합니다. 
  
