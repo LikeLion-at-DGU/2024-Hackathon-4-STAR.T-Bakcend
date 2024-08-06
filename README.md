@@ -1,7 +1,14 @@
-2024 LikeLion Hackathon : ***STAR.T***
-=
-스타와 함께, 빛나는 일상으로! ***STAR.T***
+<div align="center">
+ <h1>2024 LikeLion Hackathon: <em>STAR.T</em></h1>
+   <a href="https://www.likelion-start.site/">
+    <img width="150px" src="https://raw.githubusercontent.com/onlynyang/2024-Hackathon-4-STAR.T-Bakcend-images/main/%EB%A1%9C%EA%B3%A0%20%EC%82%AC%EC%A7%84.png" alt="START로 이동하기"/>
+  </a>
+ <h3>
+ 스타와 함께, 빛나는 일상으로!
+ </h3>
+</div>
 
+ 
 ## 🌟 STAR.T
 > 갓생의 시작은 STAR.T와 START 🚩
 
@@ -224,22 +231,3 @@
  ┃ ┃ ┗ 📜 __init__.py
  ┗ ┗
 ```
-
-
-## 🎁 Library
-<!--| Name         | Version  |          |
-| ------------ |  :-----: |  ------------ |
-| [Then](https://github.com/devxoul/Then) | `3.0.0` | 객체를 생성하고 설정하는 코드를 하나의 블록으로 묶어 가독성을 향상시킨다. |
-| [SnapKit](https://github.com/SnapKit/SnapKit) | `5.7.1` | Auto Layout 제약조건을 코드로 쉽게 작성할 수 있도록 한다. |
-| [Moya](https://github.com/Moya/Moya) |  `15.0.3`  | 네트워크 요청을 간편화하고, 구조화된 방식으로 관리하여 코드의 가독성과 유지 보수성을 높인다.|
-| [Kingfisher](https://github.com/onevcat/Kingfisher) | `7.12.0` | URL로부터 이미지 다운 중 처리 작업을 간소화할 수 있도록 한다. |
-| [NMFMaps](https://navermaps.github.io/ios-map-sdk/guide-ko/1.html) | `15.0.3` | 다양한 지도 기능을 원활하게 구현할 수 있도록 한다. |
-| [Lottie](https://github.com/airbnb/lottie-ios) | `4.5.0` | 벡터 그래픽 애니메이션을 추가하고 관리한다. |-->
-
-
-## 🔥 Trouble Shooting
-<!--[🔗 Trouble Shooting](https://fast-kilometer-dbf.notion.site/trouble-shooting-d491565abcb94a72b4a6b36716a6fb05?pvs=4)-->
-
-## 📸 Off The Record
-<!--우리 사진 넣자 오손도손 4팀 ^0^-->
-<!--![image](https://github.com/user-attachments/assets/eecbe550-5816-4d29-96b9-c654ddef5eae)-->
