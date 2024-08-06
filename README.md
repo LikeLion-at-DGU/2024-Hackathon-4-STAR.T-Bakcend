@@ -61,7 +61,7 @@
 
 
 ## 🛠 Development Tools & Environment
-<img width="110" alt="Django" src="https://img.shields.io/badge/Django-4.2.2-green"> <img width="110" alt="React" src="https://img.shields.io/badge/React-18.2.0-blue"> <img width="110" alt="Python" src="https://img.shields.io/badge/Python-3.11-yellow"> <img width="130" alt="Node.js" src="https://img.shields.io/badge/Node.js-18.17.0-brightgreen"> <img width="110" alt="Nginx" src="https://img.shields.io/badge/Nginx-1.24.0-orange"> <img width="130" alt="Gunicorn" src="https://img.shields.io/badge/Gunicorn-20.1.0-red">
+<img width="110" alt="Django" src="https://img.shields.io/badge/Django-4.2.2-green"> <img width="110" alt="Python" src="https://img.shields.io/badge/Python-3.11-yellow"> <img width="110" alt="Nginx" src="https://img.shields.io/badge/Nginx-1.24.0-orange"> <img width="130" alt="Gunicorn" src="https://img.shields.io/badge/Gunicorn-20.1.0-red">
 
 
 
