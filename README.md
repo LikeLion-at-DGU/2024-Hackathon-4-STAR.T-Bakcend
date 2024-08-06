@@ -45,9 +45,10 @@
 
 
 ## 🖥️ Developers
-| [@onlynyang](https://github.com/onlynyang) | [@pyeree](https://github.com/pyeree) | [@zoey003](https://github.com/zoey003) | [@Chaem03](https://github.com/Chaem03) | [@sayyyho](https://github.com/sayyyho) |
+| 한지은 | 임현우 | 김지현 | 하채민 | 박세호 |
 |:---:|:---:|:---:|:---:|:---:|
-|<img width="250" alt="" src="">|<img width="250" alt="" src="">|<img width="250" alt="" src="">| | |
+|<img width="250" alt="" src="https://raw.githubusercontent.com/onlynyang/2024-Hackathon-4-STAR.T-Bakcend-images/main/%EC%A7%80%EC%9D%803.jpg">|<img width="250" alt="" src="https://raw.githubusercontent.com/onlynyang/2024-Hackathon-4-STAR.T-Bakcend-images/main/%ED%98%84%EC%9A%B02.jpg">|<img width="250" alt="" src="https://raw.githubusercontent.com/onlynyang/2024-Hackathon-4-STAR.T-Bakcend-images/main/%EC%A7%80%ED%98%843.jpg">|<img width="250" alt="" src="https://raw.githubusercontent.com/onlynyang/2024-Hackathon-4-STAR.T-Bakcend-images/main/%EC%B1%84%EB%AF%BC.jpg">|<img width="250" alt="" src="https://raw.githubusercontent.com/onlynyang/2024-Hackathon-4-STAR.T-Bakcend-images/main/%EC%84%B8%ED%98%B8.jpg"> |
+| [@onlynyang](https://github.com/onlynyang)| [@pyeree](https://github.com/pyeree)| [@zoey003](https://github.com/zoey003) | [@Chaem03](https://github.com/Chaem03) | [@sayyyho](https://github.com/sayyyho) |
 | `통계학과`<br/> `한지은`<br/>| `정보통신공학과`<br/> `임현우`<br/>| `경제학과`<br/> `김지현`<br/> | `전자전기공학과`<br/> `하채민`<br/> | `정보통신공학과`<br/> `박세호`<br/> |
 | `BE`<br/>| `BE`<br/>| `PD`<br/> | `FE`<br/> | `FE`<br/> |
 
